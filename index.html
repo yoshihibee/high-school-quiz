@@ -7,12 +7,16 @@
     body { font-family: sans-serif; max-width: 900px; margin: 20px auto; padding: 20px; line-height: 1.6; background: #fdfbf7; color: #333; }
     header { text-align: center; margin-bottom: 30px; }
     .card { border: 1px solid #ddd; padding: 20px; border-radius: 8px; background: #fff; box-shadow: 2px 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; }
+    .admin-card { border: 1px solid #bee3f8; background: #ebf8ff; }
     .subject-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; margin-top: 15px; }
     .subject-card { border: 1px solid #cce0ff; padding: 15px; border-radius: 6px; background: #f0f8ff; }
     .subject-card h4 { margin: 0 0 10px 0; color: #0066cc; }
     .btn { background: #0066cc; color: #fff; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; width: 100%; margin-top: 5px; }
     .btn:hover { background: #004c99; }
+    .btn-admin { background: #3182ce; }
+    .btn-admin:hover { background: #2b6cb0; }
     select { padding: 6px; font-size: 14px; width: 100%; margin-bottom: 8px; box-sizing: border-box; }
+    #status-msg { font-size: 0.9rem; color: #4a5568; margin-top: 10px; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -22,9 +26,17 @@
     <p>解きたい科目と難易度を選んで、毎日の学習を進めましょう！</p>
   </header>
 
+  <!-- ⚙️ 追加した「Webページから作問を実行する」管理メニュー -->
+  <div class="card admin-card">
+    <h3>⚙️ 管理者メニュー（自動作問コントロール）</h3>
+    <p style="font-size: 0.9rem; color: #4a5568;">ボタンを押すと、GitHubに直接リクエストを送り、今すぐ新しい問題の作問（Actions）を実行させることができます。</p>
+    <button class="btn btn-admin" onclick="triggerWorkflow()">🤖 今すぐ新しい問題を作成する</button>
+    <div id="status-msg"></div>
+  </div>
+
   <div class="card">
     <h3>📚 科目・難易度セレクト一覧</h3>
-    <p>自動生成された各科目のHTMLファイル（例: <code>eng_read_LevelQuiz_20260916.html</code> など）が同じフォルダ（またはデスクトップ）にある状態であれば、以下のボタンやファイル読み込みからすぐに演習を始められます。</p>
+    <p>自動生成された各科目のHTMLファイル（例: <code>eng_read_LevelQuiz_20260916.html</code> など）が同じフォルダにある状態であれば、以下のボタンやファイル読み込みからすぐに演習を始められます。</p>
     
     <div class="subject-grid" id="subject-list">
       <!-- JavaScriptで動的にカードを生成します -->
@@ -72,13 +84,47 @@
     });
 
     function openQuiz(code) {
-      // 日付部分は実際のファイル名に合わせて適宜変更、または各科目のアプリを開く仕様にします
-      // ここでは自動生成されたファイル名規則（科目コード_LevelQuiz_日付.html）を想定
       const dateStr = "20260916"; // 必要に応じて調整
       const filename = `${code}_LevelQuiz_${dateStr}.html`;
-      
-      // 同一フォルダ内にあるファイルを直接開く試み
       window.open(filename, '_blank');
+    }
+
+    // 🤖 GitHub ActionsをWebページからキックする関数
+    async function triggerWorkflow() {
+      const statusMsg = document.getElementById("status-msg");
+      statusMsg.innerText = "⏳ GitHubに実行リクエストを送信中...";
+
+      const owner = "yoshihibee";
+      const repo = "high-school-quiz";
+      const workflowId = "auto_quiz.yml"; 
+
+      // 【重要】ここにGitHubで発行したアクセストークン（Personal Access Token）を貼り付けてください
+      const token = "ここにGitHubのアクセストークンを貼り付け"; 
+
+      const url = `https://api.github.com/repos/${owner}/${repo}/actions/workflows/${workflowId}/dispatches`;
+
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'api.github.com/v3+json', // または application/vnd.github+json
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ref: 'main'
+          })
+        });
+
+        if (response.ok || response.status === 204) {
+          statusMsg.innerText = "✅ 作問リクエストの送信に成功しました！1〜2分後にActionsが動き始めます。";
+        } else {
+          statusMsg.innerText = "❌ 失敗しました。アクセストークンや設定を確認してください。";
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        statusMsg.innerText = "❌ 通信エラーが発生しました。";
+      }
     }
   </script>
 
