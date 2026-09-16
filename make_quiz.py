@@ -9,27 +9,27 @@ API_KEY = "AQ.Ab8RN6IsMS7_tgW3XLpwVXQDCGNxBP8zjgvpWYDATKU96_zq0g"
 client = genai.Client(api_key=API_KEY)
 
 SUBJECTS = [
-    {"code": "eng_read", "name": "英語リーディング"},
-    {"code": "eng_listen", "name": "英語リスニング"},
-    {"code": "math1", "name": "数学I"},
-    {"code": "math_a", "name": "数学A"},
-    {"code": "math2", "name": "数学Ⅱ"},
-    {"code": "math_b", "name": "数学B"},
-    {"code": "math_c", "name": "数学C"},
-    {"code": "kokugo_gen", "name": "現代文"},
-    {"code": "kokugo_ko", "name": "古文"},
-    {"code": "kokugo_kan", "name": "漢文"},
-    {"code": "chem_base", "name": "化学基礎"},
-    {"code": "earth_base", "name": "地学基礎"},
-    {"code": "geo_tankyu", "name": "地理総合探究"},
-    {"code": "seikei", "name": "公共政治経済"},
-    {"code": "info1", "name": "情報I"},
+    {"code": "eng_read", "name": "英語リーディング", "color": "#3b82f6"},    # 青
+    {"code": "eng_listen", "name": "英語リスニング", "color": "#60a5fa"}, # 水色
+    {"code": "math1", "name": "数学I", "color": "#10b981"},               # エメラルド
+    {"code": "math_a", "name": "数学A", "color": "#34d399"},             # ライトグリーン
+    {"code": "math2", "name": "数学Ⅱ", "color": "#059669"},             # 深緑
+    {"code": "math_b", "name": "数学B", "color": "#047857"},             # 濃緑
+    {"code": "math_c", "name": "数学C", "color": "#6ee7b7"},             # ミント
+    {"code": "kokugo_gen", "name": "現代文", "color": "#f59e0b"},          # アンバー/オレンジ
+    {"code": "kokugo_ko", "name": "古文", "color": "#fbbf24"},           # 黄色
+    {"code": "kokugo_kan", "name": "漢文", "color": "#d97706"},          # 橙色
+    {"code": "chem_base", "name": "化学基礎", "color": "#8b5cf6"},       # 紫
+    {"code": "earth_base", "name": "地学基礎", "color": "#a78bfa"},     # ライトパープル
+    {"code": "geo_tankyu", "name": "地理総合探究", "color": "#ec4899"}, # ピンク
+    {"code": "seikei", "name": "公共政治経済", "color": "#f43f5e"},      # ローズ/赤
+    {"code": "info1", "name": "情報I", "color": "#06b6d4"},                # シアン
 ]
 
 QUESTIONS_PER_SUBJECT = 200
 BATCH_SIZE = 20
 
-print("=== 自動クイズ生成 ＆ データベース蓄積システム ===")
+print("=== ダークテーマ＆科目カラー対応 自動クイズ生成・データベース蓄積システム ===")
 
 for sub in SUBJECTS:
     selected_subject = sub["name"]
@@ -73,8 +73,7 @@ for sub in SUBJECTS:
             except Exception as e:
                 error_str = str(e)
                 if "429" in error_str or "RESOURCE_EXHAUSTED" in error_str or "quota" in error_str.lower():
-                    print("\n🚨 【無料枠の制限（上限）に達しました】")
-                    print("安全にプログラムを自動停止します。")
+                    print("\n🚨 【無料枠の制限（上限）に達しました】安全にプログラムを自動停止します。")
                     exit()
                 
                 retry_count += 1
@@ -87,7 +86,6 @@ for sub in SUBJECTS:
 
         time.sleep(4)
 
-    # 既存のデータベースファイルを読み込んで統合（蓄積型にする場合）
     db_filename = f"db_{selected_code}.json"
     existing_questions = []
     if os.path.exists(db_filename):
@@ -97,10 +95,7 @@ for sub in SUBJECTS:
         except:
             existing_questions = []
 
-    # 新しく作った問題を統合（ID重複を防ぐか、そのまま蓄積）
-    # ここでは最新の作問分で上書き、または追加蓄積します
     combined_questions = new_questions + existing_questions
-    # 最大蓄積数を制限する場合は調整（例: 最新1000問までなど）
     combined_questions = combined_questions[:1000]
 
     with open(db_filename, "w", encoding="utf-8") as df:
