@@ -1,5 +1,4 @@
 import json
-import time
 from datetime import datetime
 from google import genai
 
@@ -7,93 +6,44 @@ from google import genai
 API_KEY = "AQ.Ab8RN6IsMS7_tgW3XLpwVXQDCGNxBP8zjgvpWYDATKU96_zq0g"
 client = genai.Client(api_key=API_KEY)
 
+# テスト用に「情報I」の1科目、10問だけに絞る
 SUBJECTS = [
-    {"code": "eng_read", "name": "英語リーディング"},
-    {"code": "eng_listen", "name": "英語リスニング"},
-    {"code": "math1", "name": "数学I"},
-    {"code": "math_a", "name": "数学A"},
-    {"code": "math2", "name": "数学Ⅱ"},
-    {"code": "math_b", "name": "数学B"},
-    {"code": "math_c", "name": "数学C"},
-    {"code": "kokugo_gen", "name": "現代文"},
-    {"code": "kokugo_ko", "name": "古文"},
-    {"code": "kokugo_kan", "name": "漢文"},
-    {"code": "chem_base", "name": "化学基礎"},
-    {"code": "earth_base", "name": "地学基礎"},
-    {"code": "geo_tankyu", "name": "地理総合探究"},
-    {"code": "seikei", "name": "公共政治経済"},
     {"code": "info1", "name": "情報I"},
 ]
 
-QUESTIONS_PER_SUBJECT = 200
-BATCH_SIZE = 20
+QUESTIONS_PER_SUBJECT = 10
+BATCH_SIZE = 10
 
-print("=== 自動クイズ生成システム（無料枠リミット自動停止対応） ===")
+print("=== テスト用クイズ生成システム ===")
 
 for sub in SUBJECTS:
     selected_subject = sub["name"]
     selected_code = sub["code"]
-    print(f"\n📚 【{selected_subject}】の生成を開始します...")
+    print(f"\n📚 【{selected_subject}】のテスト生成を開始します...")
 
-    all_questions = []
+    prompt = (
+        f"高校の【{selected_subject}】の四肢択一問題を10問作成してください。\n"
+        "難易度は1〜20の範囲で設定してください。\n"
+        "出力フォーマットは必ず以下のJSON配列（[...]）のみで返してください：\n"
+        '[{"id": 数値, "q": "問題文", "opts": ["選択肢1", "選択肢2", "選択肢3", "選択肢4"], "a": 正解インデックス(0-3), "exp": "解説", "difficulty": 1〜20の整数}]'
+    )
 
-    for i in range(0, QUESTIONS_PER_SUBJECT, BATCH_SIZE):
-        start_num = i + 1
-        end_num = min(i + BATCH_SIZE, QUESTIONS_PER_SUBJECT)
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=prompt,
+    )
+    clean_text = response.text.replace("```json", "").replace("```", "").strip()
+    all_questions = json.loads(clean_text)
 
-        prompt = (
-            f"高校の【{selected_subject}】の四肢択一問題を{start_num}問目から{end_num}問目まで作成してください。\n"
-            "難易度は基礎（1）から超難問（20）までの20段階に細かく分けて、それぞれの問題に設定してください。\n"
-            "出力フォーマットは必ず以下のJSON配列（[...]）のみで返してください：\n"
-            '[{"id": 数値, "q": "問題文", "opts": ["選択肢1", "選択肢2", "選択肢3", "選択肢4"], "a": 正解インデックス(0-3), "exp": "解説", "difficulty": 1〜20の整数}]'
-        )
-
-        success = False
-        retry_count = 0
-
-        while not success:
-            try:
-                response = client.models.generate_content(
-                    model="gemini-2.5-flash",
-                    contents=prompt,
-                )
-                clean_text = (
-                    response.text.replace("```json", "")
-                    .replace("```", "")
-                    .strip()
-                )
-                data = json.loads(clean_text)
-                if isinstance(data, list):
-                    all_questions.extend(data)
-                else:
-                    all_questions.append(data)
-                success = True
-
-            except Exception as e:
-                error_str = str(e)
-                if "429" in error_str or "RESOURCE_EXHAUSTED" in error_str or "quota" in error_str.lower():
-                    print("\n🚨 【無料枠の制限（上限）に達しました】")
-                    print("安全にプログラムを自動停止します。")
-                    exit()
-                
-                retry_count += 1
-                if retry_count > 3:
-                    print(f"⚠️ エラーが続くためスキップします: {e}")
-                    success = True
-                else:
-                    print(f"  ⚠️ 一時的なエラー。20秒後に再試行します: {e}")
-                    time.sleep(20)
-
-        time.sleep(4)
-
-    timestamp = datetime.now().strftime("%Y%m%d")
-    html_filename = f"{selected_code}_LevelQuiz_{timestamp}.html"
+    # 当日の日付（2026年9月17日）に合わせたファイル名にする
+    date_str = "20260917"
+    html_filename = f"{selected_code}_LevelQuiz_{date_str}.html"
 
     html_content = f"""<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>{selected_subject} 20段階難易度クイズ</title>
+  <title>{selected_subject} クイズ演習</title>
   <style>
     body {{ font-family: sans-serif; max-width: 800px; margin: 20px auto; padding: 20px; line-height: 1.6; background: #fdfbf7; }}
     .card {{ border: 1px solid #ddd; padding: 20px; border-radius: 8px; background: #fff; box-shadow: 2px 2px 8px rgba(0,0,0,0.05); margin-bottom: 15px; }}
@@ -101,31 +51,19 @@ for sub in SUBJECTS:
     .btn:hover {{ background: #004c99; }}
     .opt-btn {{ display: block; width: 100%; text-align: left; padding: 12px; margin: 8px 0; border: 1px solid #ddd; background: #f9f9f9; border-radius: 4px; cursor: pointer; font-size: 16px; }}
     .opt-btn:hover {{ background: #eef; }}
-    .badge {{ background: #ff9900; color: white; padding: 3px 8px; border: 12px; font-size: 12px; font-weight: bold; }}
+    .badge {{ background: #ff9900; color: white; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }}
     .explanation {{ background: #f0f8ff; border-left: 4px solid #0066cc; padding: 12px; margin-top: 15px; border-radius: 0 4px 4px 0; }}
     .hidden {{ display: none; }}
   </style>
 </head>
 <body>
-  <h1>{selected_subject} クイズ演習アプリ</h1>
+  <h1>{selected_subject} テストクイズ演習</h1>
   <div id="start-section" class="card">
-    <h3>挑戦する難易度を選んでください</h3>
-    <label>難易度フィルター: 
-      <select id="diff-filter" style="padding: 5px; font-size: 14px;">
-        <option value="all">すべての難易度</option>
-        <script>
-          for(let d=1; d<=20; d++) {{
-            document.write(`<option value="${{d}}">レベル ${{d}}</option>`);
-          }}
-        </script>
-      </select>
-    </label><br><br>
-    <button class="btn" onclick="startQuiz()">クイズを始める</button>
+    <button class="btn" onclick="startQuiz()">クイズを始める（全10問）</button>
   </div>
   <div id="quiz-section" class="card hidden">
     <div>
       <span id="progress"></span>
-      <span id="diff-badge" class="badge" style="margin-left: 10px;"></span>
       <span id="score-count" style="float:right;"></span>
     </div>
     <h2 id="question-text"></h2>
@@ -138,13 +76,9 @@ for sub in SUBJECTS:
   </div>
   <script>
     const rawQuestions = {json.dumps(all_questions, ensure_ascii=False)};
-    let questions = [];
     let currentIndex = 0;
     let score = 0;
     function startQuiz() {{
-      const selectedDiff = document.getElementById('diff-filter').value;
-      questions = (selectedDiff === 'all') ? [...rawQuestions] : rawQuestions.filter(q => q.difficulty == selectedDiff);
-      if (questions.length === 0) {{ alert("問題が見つかりませんでした"); return; }}
       currentIndex = 0; score = 0;
       document.getElementById('start-section').classList.add('hidden');
       document.getElementById('quiz-section').classList.remove('hidden');
@@ -152,9 +86,8 @@ for sub in SUBJECTS:
     }}
     function showQuestion() {{
       document.getElementById('result-area').classList.add('hidden');
-      const q = questions[currentIndex];
-      document.getElementById('progress').innerText = `問題 ${{currentIndex + 1}} / ${{questions.length}}`;
-      document.getElementById('diff-badge').innerText = `レベル ${{q.difficulty || 1}} / 20`;
+      const q = rawQuestions[currentIndex];
+      document.getElementById('progress').innerText = `問題 ${{currentIndex + 1}} / ${{rawQuestions.length}}`;
       document.getElementById('score-count').innerText = `正解数: ${{score}}`;
       document.getElementById('question-text').innerText = q.q;
       const optsContainer = document.getElementById('options-container');
@@ -168,7 +101,7 @@ for sub in SUBJECTS:
       }});
     }}
     function checkAnswer(selectedIdx) {{
-      const q = questions[currentIndex];
+      const q = rawQuestions[currentIndex];
       const resultArea = document.getElementById('result-area');
       const judge = document.getElementById('judge');
       const exp = document.getElementById('explanation');
@@ -179,8 +112,8 @@ for sub in SUBJECTS:
     }}
     function nextQuestion() {{
       currentIndex++;
-      if (currentIndex < questions.length) {{ showQuestion(); }}
-      else {{ alert(`終了！スコア: ${{score}} / ${{questions.length}}`); location.reload(); }}
+      if (currentIndex < rawQuestions.length) {{ showQuestion(); }}
+      else {{ alert(`終了！スコア: ${{score}} / ${{rawQuestions.length}}`); location.reload(); }}
     }}
   </script>
 </body>
@@ -191,4 +124,4 @@ for sub in SUBJECTS:
         f.write(html_content)
     print(f"  💾 【保存完了】 {html_filename}")
 
-print("\n🎉 本日の作成可能分の処理がすべて完了しました！")
+print("\n🎉 テスト生成が完了しました！")
