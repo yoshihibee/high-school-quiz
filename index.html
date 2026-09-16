@@ -2,7 +2,8 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>高校全15科目 学習・演習総合ポータル (Dark Mode)</title>
+  <title>高校全15科目 学習・演習総合ポータル</title>
+  <link rel="manifest" href="manifest.json">
   <style>
     :root {
       --bg-color: #0f172a;
@@ -52,13 +53,33 @@
     #quiz-play-area { display: none; }
     .opt-btn { display: block; width: 100%; text-align: left; padding: 12px; margin: 8px 0; border: 1px solid var(--border-color); background: #111827; color: #fff; border-radius: 4px; cursor: pointer; font-size: 16px; transition: 0.2s; }
     .opt-btn:hover { background: #334155; }
+
+    /* スマホ版だけのフローティングウィジェット */
+    .mobile-only-widget { display: none; }
+    @media (max-width: 768px) {
+      .mobile-only-widget {
+        display: block;
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: var(--accent);
+        color: #fff;
+        padding: 12px 18px;
+        border-radius: 30px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        z-index: 1000;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+    }
   </style>
 </head>
 <body>
 
   <header>
     <h1>高校全15科目 学習・演習総合ポータル</h1>
-    <p>ダークモード対応 ｜ クイズ挑戦と科目ごとの詳細な正誤・問題リスト確認</p>
+    <p>ダークモード ｜ 科別カラー ｜ 個別正誤管理 ｜ 難易度フィルター</p>
   </header>
 
   <!-- タブ切り替えメニュー -->
@@ -93,21 +114,19 @@
     </div>
   </div>
 
-  <!-- ② 成績・問題詳細一覧画面（学習履歴タブ） -->
+  <!-- ② 成績・問題詳細一覧画面 -->
   <div id="view-history" class="view-section">
-    <!-- 全体サマリー ＆ 科目カード一覧 -->
     <div id="history-main-view">
       <div class="card">
         <h3>📊 総合学習サマリー</h3>
         <div id="overall-summary-box"></div>
       </div>
       <div class="card">
-        <h3>📚 科目別 成績一覧 （クリックして詳細・難易度別問題を見る）</h3>
+        <h3>📚 科目別 成績一覧 （クリックして詳細を見る）</h3>
         <div class="subject-grid" id="history-subject-grid"></div>
       </div>
     </div>
 
-    <!-- 科目詳細（問題リスト ＋ 難易度フィルター） -->
     <div id="history-detail-view" class="card" style="display: none;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
         <button class="btn" style="width:auto; padding:5px 15px; background:#475569;" onclick="backToHistoryMain()">← 科目一覧に戻る</button>
@@ -123,6 +142,11 @@
 
       <div id="detail-questions-container"></div>
     </div>
+  </div>
+
+  <!-- スマホ版だけのウィジェット -->
+  <div class="mobile-only-widget" onclick="switchTab('quiz')">
+    🎯 クイズを始める
   </div>
 
   <script>
@@ -147,7 +171,6 @@
     let currentDetailCode = "";
     let cachedSubjectQuestions = [];
 
-    // タブ切り替え
     function switchTab(tabName) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
@@ -163,7 +186,6 @@
     }
 
     function initPortal() {
-      // 1. クイズ挑戦画面のグリッド生成
       const quizContainer = document.getElementById('quiz-subject-list');
       quizContainer.innerHTML = '';
       subjects.forEach(sub => {
@@ -182,14 +204,12 @@
         quizContainer.appendChild(card);
       });
 
-      // 2. 難易度フィルターの選択肢生成（詳細画面用）
       const diffFilter = document.getElementById('detail-diff-filter');
       let diffHtml = '<option value="all">すべての難易度 (レベル1〜20)</option>';
       for(let i=1; i<=20; i++) { diffHtml += `<option value="${i}">レベル ${i}</option>`; }
       diffFilter.innerHTML = diffHtml;
     }
 
-    // --- クイズ演習エンジン ---
     let currentQuizData = [];
     let currentQuizIndex = 0;
     let currentScore = 0;
@@ -283,7 +303,6 @@
       document.getElementById('quiz-select-card').style.display = 'block';
     }
 
-    // --- 正誤データの管理 (LocalStorage) ---
     function saveQuestionResult(code, qId, isCorrect) {
       let history = JSON.parse(localStorage.getItem('quiz_results') || '{}');
       if (!history[code]) history[code] = {};
@@ -291,7 +310,6 @@
       localStorage.setItem('quiz_results', JSON.stringify(history));
     }
 
-    // --- 成績一覧・科目詳細ビュー ---
     async function loadHistoryStats() {
       document.getElementById('history-main-view').style.display = 'block';
       document.getElementById('history-detail-view').style.display = 'none';
@@ -331,7 +349,6 @@
       `;
     }
 
-    // 科目をクリックしたときの詳細表示
     async function openSubjectDetail(code, name) {
       currentDetailCode = code;
       document.getElementById('detail-subject-title').innerText = `${name} - 問題一覧 ＆ 正誤ステータス`;
@@ -345,7 +362,7 @@
       try {
         const res = await fetch(`db_${code}.json`);
         if (!res.ok) {
-          container.innerHTML = `<p style="color: #f87171;">まだこの科目の問題データ（db_${code}.json）が生成されていません。</p>`;
+          container.innerHTML = `<p style="color: #f87171;">まだこの科目の問題データが生成されていません。</p>`;
           return;
         }
         cachedSubjectQuestions = await res.json();
@@ -355,7 +372,6 @@
       }
     }
 
-    // 難易度フィルターに応じて詳細問題リストを描画
     function renderSubjectDetailQuestions() {
       const diffFilter = document.getElementById('detail-diff-filter').value;
       const container = document.getElementById('detail-questions-container');
