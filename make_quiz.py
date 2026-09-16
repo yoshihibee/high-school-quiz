@@ -9,8 +9,23 @@ client = genai.Client(api_key=API_KEY)
 
 SUBJECTS = [
     {"code": "eng_read", "name": "英語リーディング"},
+    {"code": "eng_listen", "name": "英語リスニング"},
+    {"code": "math1", "name": "数学I"},
+    {"code": "math_a", "name": "数学A"},
+    {"code": "math2", "name": "数学Ⅱ"},
+    {"code": "math_b", "name": "数学B"},
+    {"code": "math_c", "name": "数学C"},
+    {"code": "kokugo_gen", "name": "現代文"},
+    {"code": "kokugo_ko", "name": "古文"},
+    {"code": "kokugo_kan", "name": "漢文"},
+    {"code": "chem_base", "name": "化学基礎"},
+    {"code": "earth_base", "name": "地学基礎"},
+    {"code": "geo_tankyu", "name": "地理総合探究"},
+    {"code": "seikei", "name": "公共政治経済"},
+    {"code": "info1", "name": "情報I"},
+]
 
-QUESTIONS_PER_SUBJECT = 200  # 1科目200問
+QUESTIONS_PER_SUBJECT = 200
 BATCH_SIZE = 20
 
 print("=== 自動クイズ生成システム（無料枠リミット自動停止対応） ===")
@@ -39,7 +54,7 @@ for sub in SUBJECTS:
         while not success:
             try:
                 response = client.models.generate_content(
-                    model="gemini-3.6-flash",
+                    model="gemini-2.5-flash",
                     contents=prompt,
                 )
                 clean_text = (
@@ -56,23 +71,21 @@ for sub in SUBJECTS:
 
             except Exception as e:
                 error_str = str(e)
-                # 無料枠の上限（QUOTA_EXCEEDED または 429）を検知した場合
                 if "429" in error_str or "RESOURCE_EXHAUSTED" in error_str or "quota" in error_str.lower():
                     print("\n🚨 【無料枠の制限（上限）に達しました】")
-                    print("これ以上生成を続けるとエラーになるため、安全にプログラムを自動停止します。本日の生成分はここまで保存されます。")
-                    exit() # 安全にプログラムを終了
+                    print("安全にプログラムを自動停止します。")
+                    exit()
                 
                 retry_count += 1
                 if retry_count > 3:
                     print(f"⚠️ エラーが続くためスキップします: {e}")
-                    success = True # 無限ループ防止
+                    success = True
                 else:
                     print(f"  ⚠️ 一時的なエラー。20秒後に再試行します: {e}")
                     time.sleep(20)
 
-        time.sleep(4) # 制限回避の待機
+        time.sleep(4)
 
-    # HTMLアプリの自動書き出し
     timestamp = datetime.now().strftime("%Y%m%d")
     html_filename = f"{selected_code}_LevelQuiz_{timestamp}.html"
 
@@ -88,7 +101,7 @@ for sub in SUBJECTS:
     .btn:hover {{ background: #004c99; }}
     .opt-btn {{ display: block; width: 100%; text-align: left; padding: 12px; margin: 8px 0; border: 1px solid #ddd; background: #f9f9f9; border-radius: 4px; cursor: pointer; font-size: 16px; }}
     .opt-btn:hover {{ background: #eef; }}
-    .badge {{ background: #ff9900; color: white; padding: 3px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; }}
+    .badge {{ background: #ff9900; color: white; padding: 3px 8px; border: 12px; font-size: 12px; font-weight: bold; }}
     .explanation {{ background: #f0f8ff; border-left: 4px solid #0066cc; padding: 12px; margin-top: 15px; border-radius: 0 4px 4px 0; }}
     .hidden {{ display: none; }}
   </style>
