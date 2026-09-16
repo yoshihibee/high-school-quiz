@@ -10,21 +10,22 @@
     .subject-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; margin-top: 15px; }
     .subject-card { border: 1px solid #cce0ff; padding: 15px; border-radius: 6px; background: #f0f8ff; }
     .subject-card h4 { margin: 0 0 10px 0; color: #0066cc; }
-    .btn { background: #0066cc; color: #fff; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; width: 100%; margin-top: 5px; }
+    .btn { background: #0066cc; color: #fff; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; width: 100%; margin-top: 8px; }
     .btn:hover { background: #004c99; }
     select { padding: 6px; font-size: 14px; width: 100%; margin-bottom: 8px; box-sizing: border-box; }
+    label { font-size: 0.85rem; color: #555; display: block; margin-bottom: 3px; }
   </style>
 </head>
 <body>
 
   <header>
     <h1>高校全15科目 クイズ演習ポータル</h1>
-    <p>解きたい科目と難易度を選んで、毎日の学習を進めましょう！</p>
+    <p>解きたい科目と実施日（履歴）を選んで、毎日の学習を進めましょう！</p>
   </header>
 
   <div class="card">
-    <h3>📚 科目・難易度セレクト一覧</h3>
-    <p>自動生成された各科目のHTMLファイルが同じフォルダにある状態であれば、以下のボタンからすぐに演習を始められます。</p>
+    <h3>📚 科目・作問履歴一覧</h3>
+    <p>自動生成された各科目のクイズファイルを選択して演習を始められます。過去の履歴からも選べます。</p>
     
     <div class="subject-grid" id="subject-list">
       <!-- JavaScriptで動的にカードを生成します -->
@@ -52,33 +53,50 @@
 
     const container = document.getElementById('subject-list');
 
-    subjects.forEach(sub => {
-      const card = document.createElement('div');
-      card.className = 'subject-card';
-      
-      let diffOptions = '<option value="all">すべての難易度</option>';
-      for(let i=1; i<=20; i++) {
-        diffOptions += `<option value="${i}">レベル ${i}</option>`;
-      }
+    async function initPortal() {
+      for (const sub of subjects) {
+        const card = document.createElement('div');
+        card.className = 'subject-card';
 
-      card.innerHTML = `
-        <h4>${sub.name}</h4>
-        <select id="diff-${sub.code}">
-          ${diffOptions}
-        </select>
-        <button class="btn" onclick="openQuiz('${sub.code}')">この科目を開く</button>
-      `;
-      container.appendChild(card);
-    });
+        let dateOptions = '';
+        try {
+          const res = await fetch(`${sub.code}_history.json`);
+          if (res.ok) {
+            const dates = await res.json();
+            dates.forEach((d, idx) => {
+              const formattedDate = `${d.slice(0,4)}年${d.slice(4,6)}月${d.slice(6,8)}日`;
+              dateOptions += `<option value="${d}">${formattedDate}${idx === 0 ? ' (最新)' : ''}</option>`;
+            });
+          }
+        } catch (e) {
+          // 履歴ファイルがまだない場合のフォールバック
+        }
+
+        // 履歴がなければ本日の日付を仮セット
+        if (!dateOptions) {
+          const now = new Date();
+          const yyyy = now.getFullYear();
+          const mm = String(now.getMonth() + 1).padStart(2, '0');
+          const dd = String(now.getDate()).padStart(2, '0');
+          const todayStr = `${yyyy}${mm}${dd}`;
+          dateOptions = `<option value="${todayStr}">${yyyy}年${mm}月${dd}日 (最新)</option>`;
+        }
+
+        card.innerHTML = `
+          <h4>${sub.name}</h4>
+          <label>実施日を選ぶ:</label>
+          <select id="date-${sub.code}">
+            ${dateOptions}
+          </select>
+          <button class="btn" onclick="openQuiz('${sub.code}')">この科目を開く</button>
+        `;
+        container.appendChild(card);
+      }
+    }
 
     async function openQuiz(code) {
-      // 当日の日付を自動取得 (YYYYMMDD形式)
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      const dateStr = `${year}${month}${day}`;
-
+      const dateSelect = document.getElementById(`date-${code}`);
+      const dateStr = dateSelect ? dateSelect.value : "";
       const filename = `${code}_LevelQuiz_${dateStr}.html`;
 
       try {
@@ -86,12 +104,14 @@
         if (response.ok) {
           window.open(filename, '_blank');
         } else {
-          alert("該当する難易度のファイル、または本日のクイズファイルが見つかりません。");
+          alert("指定した日時のクイズファイルが見つかりません。");
         }
       } catch (error) {
         alert("ファイルの確認中にエラーが発生しました。");
       }
     }
+
+    initPortal();
   </script>
 
 </body>
