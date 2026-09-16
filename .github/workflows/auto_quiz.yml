@@ -1,9 +1,9 @@
 name: Auto Quiz Generator
 
 on:
-  # 1. 毎日日本時間の朝9:00（UTC 0:00）に自動で実行する設定
+  # 1. 毎日日本時間の朝5:00（UTC 20:00）に自動で実行する設定
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '0 20 * * *'
 
   # 2. GitHubの画面から手動でもボタン一つで実行できるようにする設定
   workflow_dispatch:
