@@ -1,23 +1,13 @@
 name: Auto Quiz Generator
 
 on:
-  # 1. 毎日自動で実行する設定（例：日本時間の毎日朝9:00に実行する場合）
-  schedule:
-    - cron: '0 0 * * *' # UTC（協定世界時）の0:00 ＝ 日本時間の朝9:00
-
-  # 2. これまで通り手動でも実行できるようにする設定
-  workflow_dispatch:
-  schedule:
-    # 毎日深夜0時（UTC）に自動実行する場合の例
-    - cron: '0 0 * * *'
-  workflow_dispatch: # 手動でもボタン一つで実行できるようにする
-  
-  # 毎日朝9:00に自動で実行する設定
+  # 1. 毎日日本時間の朝9:00（UTC 0:00）に自動で実行する設定
   schedule:
     - cron: '0 0 * * *'
 
-  # 好きなタイミングで手動実行できるようにする設定
+  # 2. GitHubの画面から手動でもボタン一つで実行できるようにする設定
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -45,6 +35,7 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global http.https://github.com/.extraheader "AUTHORIZATION: bearer ${{ secrets.GITHUB_TOKEN }}"
           git add .
           git commit -m "Auto-generate latest quiz data" || exit 0
           git push
