@@ -11,7 +11,13 @@ on:
     # 毎日深夜0時（UTC）に自動実行する場合の例
     - cron: '0 0 * * *'
   workflow_dispatch: # 手動でもボタン一つで実行できるようにする
+  
+  # 毎日朝9:00に自動で実行する設定
+  schedule:
+    - cron: '0 0 * * *'
 
+  # 好きなタイミングで手動実行できるようにする設定
+  workflow_dispatch:
 jobs:
   build:
     runs-on: ubuntu-latest
