@@ -7,11 +7,13 @@
     body { font-family: sans-serif; max-width: 900px; margin: 20px auto; padding: 20px; line-height: 1.6; background: #fdfbf7; color: #333; }
     header { text-align: center; margin-bottom: 30px; }
     .card { border: 1px solid #ddd; padding: 20px; border-radius: 8px; background: #fff; box-shadow: 2px 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; }
-    .subject-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; margin-top: 15px; }
+    .subject-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 15px; margin-top: 15px; }
     .subject-card { border: 1px solid #cce0ff; padding: 15px; border-radius: 6px; background: #f0f8ff; }
     .subject-card h4 { margin: 0 0 10px 0; color: #0066cc; }
-    .btn { background: #0066cc; color: #fff; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; width: 100%; margin-top: 8px; }
+    .btn { background: #0066cc; color: #fff; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; width: 100%; margin-top: 6px; }
     .btn:hover { background: #004c99; }
+    .btn-sub { background: #34a853; }
+    .btn-sub:hover { background: #2b8c42; }
     select { padding: 6px; font-size: 14px; width: 100%; margin-bottom: 8px; box-sizing: border-box; }
     label { font-size: 0.85rem; color: #555; display: block; margin-bottom: 3px; }
   </style>
@@ -20,12 +22,12 @@
 
   <header>
     <h1>高校全15科目 クイズ演習ポータル</h1>
-    <p>解きたい科目と実施日（履歴）を選んで、毎日の学習を進めましょう！</p>
+    <p>解いて練習するか、問題・解答リストをじっくり見直すか、目的に合わせて選んでください！</p>
   </header>
 
   <div class="card">
-    <h3>📚 科目・作問履歴一覧</h3>
-    <p>自動生成された各科目のクイズファイルを選択して演習を始められます。過去の履歴からも選べます。</p>
+    <h3>📚 科目・履歴・閲覧選択</h3>
+    <p>各科目の実施日を選んで、「クイズを解く」または「問題と解答の一覧を見る」ことができます。</p>
     
     <div class="subject-grid" id="subject-list">
       <!-- JavaScriptで動的にカードを生成します -->
@@ -68,11 +70,8 @@
               dateOptions += `<option value="${d}">${formattedDate}${idx === 0 ? ' (最新)' : ''}</option>`;
             });
           }
-        } catch (e) {
-          // 履歴ファイルがまだない場合のフォールバック
-        }
+        } catch (e) {}
 
-        // 履歴がなければ本日の日付を仮セット
         if (!dateOptions) {
           const now = new Date();
           const yyyy = now.getFullYear();
@@ -88,7 +87,8 @@
           <select id="date-${sub.code}">
             ${dateOptions}
           </select>
-          <button class="btn" onclick="openQuiz('${sub.code}')">この科目を開く</button>
+          <button class="btn" onclick="openQuiz('${sub.code}')">🎯 クイズを解く</button>
+          <button class="btn btn-sub" onclick="openViewList('${sub.code}')">📖 問題・解答一覧を見る</button>
         `;
         container.appendChild(card);
       }
@@ -105,6 +105,23 @@
           window.open(filename, '_blank');
         } else {
           alert("指定した日時のクイズファイルが見つかりません。");
+        }
+      } catch (error) {
+        alert("ファイルの確認中にエラーが発生しました。");
+      }
+    }
+
+    async function openViewList(code) {
+      const dateSelect = document.getElementById(`date-${code}`);
+      const dateStr = dateSelect ? dateSelect.value : "";
+      const filename = `${code}_ViewList_${dateStr}.html`;
+
+      try {
+        const response = await fetch(filename, { method: 'HEAD' });
+        if (response.ok) {
+          window.open(filename, '_blank');
+        } else {
+          alert("指定した日時の問題・解答一覧ファイルが見つかりません。");
         }
       } catch (error) {
         alert("ファイルの確認中にエラーが発生しました。");
