@@ -9,21 +9,6 @@ client = genai.Client(api_key=API_KEY)
 
 SUBJECTS = [
     {"code": "eng_read", "name": "英語リーディング"},
-    {"code": "eng_listen", "name": "英語リスニング"},
-    {"code": "math1", "name": "数学I"},
-    {"code": "math_a", "name": "数学A"},
-    {"code": "math2", "name": "数学Ⅱ"},
-    {"code": "math_b", "name": "数学B"},
-    {"code": "math_c", "name": "数学C"},
-    {"code": "kokugo_gen", "name": "現代文"},
-    {"code": "kokugo_ko", "name": "古文"},
-    {"code": "kokugo_kan", "name": "漢文"},
-    {"code": "chem_base", "name": "化学基礎"},
-    {"code": "earth_base", "name": "地学基礎"},
-    {"code": "geo_tankyu", "name": "地理総合探究"},
-    {"code": "seikei", "name": "公共政治経済"},
-    {"code": "info1", "name": "情報I"},
-]
 
 QUESTIONS_PER_SUBJECT = 200  # 1科目200問
 BATCH_SIZE = 20
