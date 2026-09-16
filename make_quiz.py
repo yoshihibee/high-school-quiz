@@ -9,27 +9,27 @@ API_KEY = "AQ.Ab8RN6IsMS7_tgW3XLpwVXQDCGNxBP8zjgvpWYDATKU96_zq0g"
 client = genai.Client(api_key=API_KEY)
 
 SUBJECTS = [
-    {"code": "eng_read", "name": "英語リーディング", "color": "#3b82f6"},    # 青
-    {"code": "eng_listen", "name": "英語リスニング", "color": "#60a5fa"}, # 水色
-    {"code": "math1", "name": "数学I", "color": "#10b981"},               # エメラルド
-    {"code": "math_a", "name": "数学A", "color": "#34d399"},             # ライトグリーン
-    {"code": "math2", "name": "数学Ⅱ", "color": "#059669"},             # 深緑
-    {"code": "math_b", "name": "数学B", "color": "#047857"},             # 濃緑
-    {"code": "math_c", "name": "数学C", "color": "#6ee7b7"},             # ミント
-    {"code": "kokugo_gen", "name": "現代文", "color": "#f59e0b"},          # アンバー/オレンジ
-    {"code": "kokugo_ko", "name": "古文", "color": "#fbbf24"},           # 黄色
-    {"code": "kokugo_kan", "name": "漢文", "color": "#d97706"},          # 橙色
-    {"code": "chem_base", "name": "化学基礎", "color": "#8b5cf6"},       # 紫
-    {"code": "earth_base", "name": "地学基礎", "color": "#a78bfa"},     # ライトパープル
-    {"code": "geo_tankyu", "name": "地理総合探究", "color": "#ec4899"}, # ピンク
-    {"code": "seikei", "name": "公共政治経済", "color": "#f43f5e"},      # ローズ/赤
-    {"code": "info1", "name": "情報I", "color": "#06b6d4"},                # シアン
+    {"code": "eng_read", "name": "英語リーディング", "color": "#3b82f6"},
+    {"code": "eng_listen", "name": "英語リスニング", "color": "#60a5fa"},
+    {"code": "math1", "name": "数学I", "color": "#10b981"},
+    {"code": "math_a", "name": "数学A", "color": "#34d399"},
+    {"code": "math2", "name": "数学Ⅱ", "color": "#059669"},
+    {"code": "math_b", "name": "数学B", "color": "#047857"},
+    {"code": "math_c", "name": "数学C", "color": "#6ee7b7"},
+    {"code": "kokugo_gen", "name": "現代文", "color": "#f59e0b"},
+    {"code": "kokugo_ko", "name": "古文", "color": "#fbbf24"},
+    {"code": "kokugo_kan", "name": "漢文", "color": "#d97706"},
+    {"code": "chem_base", "name": "化学基礎", "color": "#8b5cf6"},
+    {"code": "earth_base", "name": "地学基礎", "color": "#a78bfa"},
+    {"code": "geo_tankyu", "name": "地理総合探究", "color": "#ec4899"},
+    {"code": "seikei", "name": "公共政治経済", "color": "#f43f5e"},
+    {"code": "info1", "name": "情報I", "color": "#06b6d4"},
 ]
 
 QUESTIONS_PER_SUBJECT = 200
 BATCH_SIZE = 20
 
-print("=== ダークテーマ＆科目カラー対応 自動クイズ生成・データベース蓄積システム ===")
+print("=== 自動クイズ生成・データベース蓄積システム ===")
 
 for sub in SUBJECTS:
     selected_subject = sub["name"]
@@ -73,7 +73,7 @@ for sub in SUBJECTS:
             except Exception as e:
                 error_str = str(e)
                 if "429" in error_str or "RESOURCE_EXHAUSTED" in error_str or "quota" in error_str.lower():
-                    print("\n🚨 【無料枠の制限（上限）に達しました】安全にプログラムを自動停止します。")
+                    print("\n🚨 【無料枠の制限に達しました】安全に停止します。")
                     exit()
                 
                 retry_count += 1
@@ -103,4 +103,4 @@ for sub in SUBJECTS:
 
     print(f"  💾 【データベース更新完了】 {db_filename} (総問題数: {len(combined_questions)}問)")
 
-print("\n🎉 全科目の作問・データベース蓄積が完了しました！")
+print("\n🎉 全科目の処理が完了しました！")
