@@ -18,7 +18,7 @@
 
     /* タブ切り替えメニュー */
     .tab-menu { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; }
-    .tab-btn { background: #334155; color: var(--text-muted); border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: bold; transition: 0.2s; }
+    .tab-btn { background: #334155; color: var(--text-muted); border: none; padding: 10px 25px; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: bold; transition: 0.2s; }
     .tab-btn.active { background: var(--accent); color: #fff; }
 
     .view-section { display: none; }
@@ -26,28 +26,29 @@
 
     .card { border: 1px solid var(--border-color); padding: 20px; border-radius: 8px; background: var(--card-bg); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); margin-bottom: 20px; }
     .subject-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 15px; margin-top: 15px; }
-    .subject-card { border: 1px solid var(--border-color); padding: 15px; border-radius: 6px; background: #111827; position: relative; overflow: hidden; }
+    .subject-card { border: 1px solid var(--border-color); padding: 15px; border-radius: 6px; background: #111827; position: relative; overflow: hidden; cursor: pointer; transition: transform 0.1s, border-color 0.2s; }
+    .subject-card:hover { border-color: var(--card-accent, #3b82f6); transform: translateY(-2px); }
     .subject-card::before { content: ""; position: absolute; top: 0; left: 0; width: 5px; height: 100%; background: var(--card-accent, #3b82f6); }
     .subject-card h4 { margin: 0 0 10px 0; font-size: 1.1rem; }
 
     .btn { background: var(--accent); color: #fff; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; width: 100%; margin-top: 8px; font-weight: bold; }
     .btn:hover { opacity: 0.9; }
-    .btn-sub { background: #10b981; }
 
     select, input { padding: 8px; font-size: 14px; width: 100%; margin-bottom: 8px; box-sizing: border-box; background: #0f172a; color: #fff; border: 1px solid var(--border-color); border-radius: 4px; }
     label { font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 3px; }
 
-    /* 問題一覧・クイズ画面用スタイル */
+    /* 問題カード・正誤表示 */
     .q-item-card { border: 1px solid var(--border-color); padding: 15px; border-radius: 6px; background: #111827; margin-bottom: 15px; position: relative; }
     .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; color: white; }
     .badge-diff { background: #d97706; }
     .badge-result-correct { background: #059669; float: right; }
     .badge-result-wrong { background: #dc2626; float: right; }
+    .badge-result-unsolved { background: #475569; float: right; }
     .opts-list { margin: 10px 0; padding-left: 20px; font-size: 0.95rem; }
     .ans-box { background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; padding: 8px; margin-top: 8px; font-size: 0.9rem; color: #34d399; }
     .exp-box { background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6; padding: 8px; margin-top: 6px; font-size: 0.9rem; color: #93c5fd; }
     
-    /* 演習画面用レイアウト */
+    /* 演習画面用 */
     #quiz-play-area { display: none; }
     .opt-btn { display: block; width: 100%; text-align: left; padding: 12px; margin: 8px 0; border: 1px solid var(--border-color); background: #111827; color: #fff; border-radius: 4px; cursor: pointer; font-size: 16px; transition: 0.2s; }
     .opt-btn:hover { background: #334155; }
@@ -57,14 +58,13 @@
 
   <header>
     <h1>高校全15科目 学習・演習総合ポータル</h1>
-    <p>ダークモード対応 ｜ 科目カラーで視覚的にわかりやすい学習環境</p>
+    <p>ダークモード対応 ｜ クイズ挑戦と科目ごとの詳細な正誤・問題リスト確認</p>
   </header>
 
   <!-- タブ切り替えメニュー -->
   <div class="tab-menu">
-    <button class="tab-btn active" onclick="switchView('quiz')">🎯 クイズを解く</button>
-    <button class="tab-btn" onclick="switchView('list')">📖 問題・解答をすべて見る</button>
-    <button class="tab-btn" onclick="switchView('history')">📊 過去の正誤・成績</button>
+    <button class="tab-btn active" onclick="switchTab('quiz')">🎯 クイズを解く</button>
+    <button class="tab-btn" onclick="switchTab('history')">📊 成績・問題一覧（学習履歴）</button>
   </div>
 
   <!-- ① クイズを解く画面 -->
@@ -74,7 +74,7 @@
       <div class="subject-grid" id="quiz-subject-list"></div>
     </div>
 
-    <!-- 実際にクイズを解くインタラクティブ画面 -->
+    <!-- インタラクティブ演習画面 -->
     <div class="card" id="quiz-play-area">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
         <button class="btn" style="width:auto; padding:5px 15px; background:#475569;" onclick="exitQuiz()">← 戻る</button>
@@ -93,27 +93,35 @@
     </div>
   </div>
 
-  <!-- ② 問題・解答一覧画面 -->
-  <div id="view-list" class="view-section">
-    <div class="card">
-      <h3>📖 科目別・作問された問題一覧 ＆ 正誤ステータス</h3>
-      <label>科目を選択:</label>
-      <select id="list-subject-select" onchange="loadQuestionList()">
-        <!-- JSで挿入 -->
-      </select>
-      <div id="question-list-container" style="margin-top: 15px;">
-        <p style="color: var(--text-muted);">科目を選択してください。</p>
+  <!-- ② 成績・問題詳細一覧画面（学習履歴タブ） -->
+  <div id="view-history" class="view-section">
+    <!-- 全体サマリー ＆ 科目カード一覧 -->
+    <div id="history-main-view">
+      <div class="card">
+        <h3>📊 総合学習サマリー</h3>
+        <div id="overall-summary-box"></div>
+      </div>
+      <div class="card">
+        <h3>📚 科目別 成績一覧 （クリックして詳細・難易度別問題を見る）</h3>
+        <div class="subject-grid" id="history-subject-grid"></div>
       </div>
     </div>
-  </div>
 
-  <!-- ③ 過去の正誤・成績画面 -->
-  <div id="view-history" class="view-section">
-    <div class="card">
-      <h3>📊 過去の学習成績・正誤履歴</h3>
-      <div id="history-stats-container">
-        <p style="color: var(--text-muted);">これまでに解いたクイズの正答率や問題ごとの正誤履歴がここに集計されます。</p>
+    <!-- 科目詳細（問題リスト ＋ 難易度フィルター） -->
+    <div id="history-detail-view" class="card" style="display: none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <button class="btn" style="width:auto; padding:5px 15px; background:#475569;" onclick="backToHistoryMain()">← 科目一覧に戻る</button>
+        <h3 id="detail-subject-title" style="margin:0; color:var(--accent);"></h3>
       </div>
+      
+      <div style="margin-bottom: 20px;">
+        <label>🔍 難易度フィルターで絞り込み:</label>
+        <select id="detail-diff-filter" onchange="renderSubjectDetailQuestions()">
+          <option value="all">すべての難易度 (レベル1〜20)</option>
+        </select>
+      </div>
+
+      <div id="detail-questions-container"></div>
     </div>
   </div>
 
@@ -136,27 +144,26 @@
       { code: "info1", name: "情報I", color: "#06b6d4" }
     ];
 
+    let currentDetailCode = "";
+    let cachedSubjectQuestions = [];
+
     // タブ切り替え
-    function switchView(viewName) {
+    function switchTab(tabName) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
 
-      if (viewName === 'quiz') {
+      if (tabName === 'quiz') {
         document.querySelector('.tab-menu button:nth-child(1)').classList.add('active');
         document.getElementById('view-quiz').classList.add('active');
-      } else if (viewName === 'list') {
+      } else if (tabName === 'history') {
         document.querySelector('.tab-menu button:nth-child(2)').classList.add('active');
-        document.getElementById('view-list').classList.add('active');
-        loadQuestionList();
-      } else if (viewName === 'history') {
-        document.querySelector('.tab-menu button:nth-child(3)').classList.add('active');
         document.getElementById('view-history').classList.add('active');
         loadHistoryStats();
       }
     }
 
     function initPortal() {
-      // 1. クイズ挑戦画面
+      // 1. クイズ挑戦画面のグリッド生成
       const quizContainer = document.getElementById('quiz-subject-list');
       quizContainer.innerHTML = '';
       subjects.forEach(sub => {
@@ -169,21 +176,17 @@
         card.innerHTML = `
           <h4 style="color: ${sub.color};">${sub.name}</h4>
           <label>難易度:</label>
-          <select id="diff-${sub.code}">${diffOptions}</select>
-          <button class="btn" style="background: ${sub.color};" onclick="startQuiz('${sub.code}', '${sub.name}')">🎯 クイズを始める</button>
+          <select id="diff-${sub.code}" onclick="event.stopPropagation()">${diffOptions}</select>
+          <button class="btn" style="background: ${sub.color};" onclick="event.stopPropagation(); startQuiz('${sub.code}')">🎯 クイズを始める</button>
         `;
         quizContainer.appendChild(card);
       });
 
-      // 2. 一覧画面のセレクトボックス
-      const listSelect = document.getElementById('list-subject-select');
-      listSelect.innerHTML = '';
-      subjects.forEach(sub => {
-        const opt = document.createElement('option');
-        opt.value = sub.code;
-        opt.innerText = sub.name;
-        listSelect.appendChild(opt);
-      });
+      // 2. 難易度フィルターの選択肢生成（詳細画面用）
+      const diffFilter = document.getElementById('detail-diff-filter');
+      let diffHtml = '<option value="all">すべての難易度 (レベル1〜20)</option>';
+      for(let i=1; i<=20; i++) { diffHtml += `<option value="${i}">レベル ${i}</option>`; }
+      diffFilter.innerHTML = diffHtml;
     }
 
     // --- クイズ演習エンジン ---
@@ -192,7 +195,7 @@
     let currentScore = 0;
     let activeSubjectCode = "";
 
-    async function startQuiz(code, name) {
+    async function startQuiz(code) {
       activeSubjectCode = code;
       const diff = document.getElementById(`diff-${code}`).value;
 
@@ -210,7 +213,6 @@
           return;
         }
 
-        // シャッフルまたはそのまま
         currentQuizIndex = 0;
         currentScore = 0;
 
@@ -244,7 +246,6 @@
       const q = currentQuizData[currentQuizIndex];
       const isCorrect = (selectedIdx === q.a);
       
-      // 正誤をLocalStorageに保存（問題ごとの正誤確認用）
       saveQuestionResult(activeSubjectCode, q.id || currentQuizIndex, isCorrect);
 
       const feedback = document.getElementById('quiz-feedback');
@@ -263,7 +264,6 @@
       exp.innerHTML = `<strong>📖 解説:</strong> ${q.exp || '解説なし'}`;
       feedback.style.display = 'block';
 
-      // 選択肢ボタンを無効化
       const btns = document.querySelectorAll('#quiz-options .opt-btn');
       btns.forEach(b => b.disabled = true);
     }
@@ -287,75 +287,23 @@
     function saveQuestionResult(code, qId, isCorrect) {
       let history = JSON.parse(localStorage.getItem('quiz_results') || '{}');
       if (!history[code]) history[code] = {};
-      history[code][qId] = isCorrect; // true または false
+      history[code][qId] = isCorrect;
       localStorage.setItem('quiz_results', JSON.stringify(history));
     }
 
-    // --- 問題・解答一覧の読み込み（正誤ステータス表示付き） ---
-    async function loadQuestionList() {
-      const select = document.getElementById('list-subject-select');
-      const code = select.value;
-      const container = document.getElementById('question-list-container');
-      container.innerHTML = "<p style='color:var(--text-muted);'>データを読み込み中...</p>";
+    // --- 成績一覧・科目詳細ビュー ---
+    async function loadHistoryStats() {
+      document.getElementById('history-main-view').style.display = 'block';
+      document.getElementById('history-detail-view').style.display = 'none';
 
       let history = JSON.parse(localStorage.getItem('quiz_results') || '{}');
-      let subHistory = history[code] || {};
-
-      try {
-        const res = await fetch(`db_${code}.json`);
-        if (!res.ok) {
-          container.innerHTML = `<p style="color: #f87171;">まだこの科目の問題データ（db_${code}.json）が生成されていません。</p>`;
-          return;
-        }
-        const questions = await res.json();
-        if (questions.length === 0) {
-          container.innerHTML = "<p style='color:var(--text-muted);'>登録されている問題はありません。</p>";
-          return;
-        }
-
-        let html = `<p style="color:var(--text-muted); margin-bottom:15px;"><strong>全 ${questions.length} 問</strong> ｜ 過去に解いた問題の正誤ステータスが表示されます。</p>`;
-        questions.forEach((q, idx) => {
-          const qId = q.id || idx;
-          const status = subHistory[qId];
-          let statusBadge = '';
-          if (status === true) {
-            statusBadge = '<span class="badge badge-result-correct">⭕ 過去正解</span>';
-          } else if (status === false) {
-            statusBadge = '<span class="badge badge-result-wrong">❌ 過去不正解</span>';
-          }
-
-          const optsHtml = q.opts.map((o, i) => `<li style="${i === q.a ? 'font-weight:bold; color:#34d399;' : ''}">${i+1}. ${o} ${i === q.a ? ' (正解)' : ''}</li>`).join('');
-          html += `
-            <div class="q-item-card">
-              <div>
-                <span class="badge badge-diff">レベル ${q.difficulty || 1}</span>
-                <span style="color: var(--text-muted); font-size: 0.85rem; margin-left: 8px;">ID: ${qId}</span>
-                ${statusBadge}
-              </div>
-              <p style="margin-top:10px;"><strong>Q. ${q.q}</strong></p>
-              <ul class="opts-list">${optsHtml}</ul>
-              <div class="ans-box"><strong>💡 正解:</strong> ${q.a + 1}. ${q.opts[q.a]}</div>
-              <div class="exp-box"><strong>📖 解説:</strong> ${q.exp || '解説なし'}</div>
-            </div>
-          `;
-        });
-        container.innerHTML = html;
-      } catch (e) {
-        container.innerHTML = `<p style="color: #f87171;">データの読み込みに失敗しました。</p>`;
-      }
-    }
-
-    // --- 成績・正誤の統計表示 ---
-    function loadHistoryStats() {
-      const container = document.getElementById('history-stats-container');
-      let history = JSON.parse(localStorage.getItem('quiz_results') || '{}');
-      
       let totalSolved = 0;
       let totalCorrect = 0;
 
-      let html = `<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap:15px; margin-top:15px;">`;
+      const gridContainer = document.getElementById('history-subject-grid');
+      gridContainer.innerHTML = '';
 
-      subjects.forEach(sub => {
+      for (const sub of subjects) {
         let subRes = history[sub.code] || {};
         let solvedCount = Object.keys(subRes).length;
         let correctCount = Object.values(subRes).filter(v => v === true).length;
@@ -363,27 +311,101 @@
         totalCorrect += correctCount;
         let rate = solvedCount > 0 ? Math.round((correctCount / solvedCount) * 100) : 0;
 
+        const card = document.createElement('div');
+        card.className = 'subject-card';
+        card.style.setProperty('--card-accent', sub.color);
+        card.onclick = () => openSubjectDetail(sub.code, sub.name);
+        card.innerHTML = `
+          <h4 style="color: ${sub.color};">${sub.name}</h4>
+          <p style="margin:4px 0; font-size:0.85rem; color:var(--text-muted);">解答済み: <strong>${solvedCount}</strong> 問</p>
+          <p style="margin:4px 0; font-size:0.85rem; color:var(--text-muted);">正解数: <strong style="color:#34d399;">${correctCount}</strong> 問</p>
+          <p style="margin:4px 0; font-size:0.85rem; color:var(--text-muted);">正答率: <strong style="color:var(--accent);">${rate}%</strong></p>
+          <p style="margin:8px 0 0 0; font-size:0.75rem; color:var(--accent); text-align:right;">クリックして詳細を見る →</p>
+        `;
+        gridContainer.appendChild(card);
+      }
+
+      let totalRate = totalSolved > 0 ? Math.round((totalCorrect / totalSolved) * 100) : 0;
+      document.getElementById('overall-summary-box').innerHTML = `
+        <p style="margin:5px 0;">総解答数: <strong>${totalSolved} 問</strong> ｜ 総正解数: <strong>${totalCorrect} 問</strong> ｜ 全体正答率: <strong style="color:var(--accent);">${totalRate}%</strong></p>
+      `;
+    }
+
+    // 科目をクリックしたときの詳細表示
+    async function openSubjectDetail(code, name) {
+      currentDetailCode = code;
+      document.getElementById('detail-subject-title').innerText = `${name} - 問題一覧 ＆ 正誤ステータス`;
+      document.getElementById('history-main-view').style.display = 'none';
+      document.getElementById('history-detail-view').style.display = 'block';
+      document.getElementById('detail-diff-filter').value = 'all';
+
+      const container = document.getElementById('detail-questions-container');
+      container.innerHTML = "<p style='color:var(--text-muted);'>データを読み込み中...</p>";
+
+      try {
+        const res = await fetch(`db_${code}.json`);
+        if (!res.ok) {
+          container.innerHTML = `<p style="color: #f87171;">まだこの科目の問題データ（db_${code}.json）が生成されていません。</p>`;
+          return;
+        }
+        cachedSubjectQuestions = await res.json();
+        renderSubjectDetailQuestions();
+      } catch (e) {
+        container.innerHTML = `<p style="color: #f87171;">データの読み込みに失敗しました。</p>`;
+      }
+    }
+
+    // 難易度フィルターに応じて詳細問題リストを描画
+    function renderSubjectDetailQuestions() {
+      const diffFilter = document.getElementById('detail-diff-filter').value;
+      const container = document.getElementById('detail-questions-container');
+
+      let filtered = cachedSubjectQuestions;
+      if (diffFilter !== 'all') {
+        filtered = cachedSubjectQuestions.filter(q => String(q.difficulty) === diffFilter);
+      }
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<p style="color:var(--text-muted); margin-top:15px;">該当する難易度の問題はありません。</p>`;
+        return;
+      }
+
+      let history = JSON.parse(localStorage.getItem('quiz_results') || '{}');
+      let subHistory = history[currentDetailCode] || {};
+
+      let html = `<p style="color:var(--text-muted); margin-bottom:15px;">表示中: <strong>${filtered.length} 問</strong></p>`;
+      
+      filtered.forEach((q, idx) => {
+        const qId = q.id || idx;
+        const status = subHistory[qId];
+        let statusBadge = '<span class="badge badge-result-unsolved">未挑戦</span>';
+        if (status === true) {
+          statusBadge = '<span class="badge badge-result-correct">⭕ 過去正解</span>';
+        } else if (status === false) {
+          statusBadge = '<span class="badge badge-result-wrong">❌ 過去不正解</span>';
+        }
+
+        const optsHtml = q.opts.map((o, i) => `<li style="${i === q.a ? 'font-weight:bold; color:#34d399;' : ''}">${i+1}. ${o} ${i === q.a ? ' (正解)' : ''}</li>`).join('');
         html += `
-          <div class="subject-card" style="--card-accent: ${sub.color};">
-            <h4 style="color: ${sub.color};">${sub.name}</h4>
-            <p style="margin:5px 0; font-size:0.9rem; color:var(--text-muted);">解答済み: <strong>${solvedCount}</strong> 問</p>
-            <p style="margin:5px 0; font-size:0.9rem; color:var(--text-muted);">正解数: <strong style="color:#34d399;">${correctCount}</strong> 問</p>
-            <p style="margin:5px 0; font-size:0.9rem; color:var(--text-muted);">正答率: <strong style="color:var(--accent);">${rate}%</strong></p>
+          <div class="q-item-card">
+            <div>
+              <span class="badge badge-diff">レベル ${q.difficulty || 1}</span>
+              <span style="color: var(--text-muted); font-size: 0.85rem; margin-left: 8px;">ID: ${qId}</span>
+              ${statusBadge}
+            </div>
+            <p style="margin-top:10px;"><strong>Q. ${q.q}</strong></p>
+            <ul class="opts-list">${optsHtml}</ul>
+            <div class="ans-box"><strong>💡 正解:</strong> ${q.a + 1}. ${q.opts[q.a]}</div>
+            <div class="exp-box"><strong>📖 解説:</strong> ${q.exp || '解説なし'}</div>
           </div>
         `;
       });
+      container.innerHTML = html;
+    }
 
-      html += `</div>`;
-      let totalRate = totalSolved > 0 ? Math.round((totalCorrect / totalSolved) * 100) : 0;
-
-      let summaryHtml = `
-        <div style="background:#111827; padding:15px; border-radius:6px; border:1px solid var(--border-color); margin-bottom:20px;">
-          <h4 style="margin:0 0 10px 0; color:#34d399;">📈 総合学習サマリー</h4>
-          <p style="margin:5px 0;">総解答数: <strong>${totalSolved} 問</strong> ｜ 総正解数: <strong>${totalCorrect} 問</strong> ｜ 全体正答率: <strong style="color:var(--accent);">${totalRate}%</strong></p>
-        </div>
-      `;
-
-      container.innerHTML = summaryHtml + html;
+    function backToHistoryMain() {
+      document.getElementById('history-detail-view').style.display = 'none';
+      document.getElementById('history-main-view').style.display = 'block';
     }
 
     initPortal();
