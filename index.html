@@ -2,35 +2,83 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>高校全15科目 クイズ演習ポータル</title>
+  <title>高校全15科目 学習・演習総合ポータル</title>
   <style>
-    body { font-family: sans-serif; max-width: 900px; margin: 20px auto; padding: 20px; line-height: 1.6; background: #fdfbf7; color: #333; }
-    header { text-align: center; margin-bottom: 30px; }
+    body { font-family: sans-serif; max-width: 950px; margin: 0 auto; padding: 20px; line-height: 1.6; background: #fdfbf7; color: #333; }
+    header { text-align: center; margin-bottom: 20px; }
+    
+    /* タブ切り替えメニュー */
+    .tab-menu { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; }
+    .tab-btn { background: #e2e8f0; color: #4a5568; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: bold; }
+    .tab-btn.active { background: #0066cc; color: #fff; }
+
+    .view-section { display: none; }
+    .view-section.active { display: block; }
+
     .card { border: 1px solid #ddd; padding: 20px; border-radius: 8px; background: #fff; box-shadow: 2px 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; }
     .subject-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 15px; margin-top: 15px; }
     .subject-card { border: 1px solid #cce0ff; padding: 15px; border-radius: 6px; background: #f0f8ff; }
     .subject-card h4 { margin: 0 0 10px 0; color: #0066cc; }
-    .btn { background: #0066cc; color: #fff; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; width: 100%; margin-top: 6px; }
+    
+    .btn { background: #0066cc; color: #fff; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; width: 100%; margin-top: 8px; }
     .btn:hover { background: #004c99; }
     .btn-sub { background: #34a853; }
     .btn-sub:hover { background: #2b8c42; }
-    select { padding: 6px; font-size: 14px; width: 100%; margin-bottom: 8px; box-sizing: border-box; }
+
+    select, input { padding: 6px; font-size: 14px; width: 100%; margin-bottom: 8px; box-sizing: border-box; }
     label { font-size: 0.85rem; color: #555; display: block; margin-bottom: 3px; }
+
+    /* リストビュー用スタイル */
+    .q-item-card { border: 1px solid #e2e8f0; padding: 15px; border-radius: 6px; background: #fff; margin-bottom: 12px; }
+    .badge { background: #ff9900; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+    .opts-list { margin: 8px 0; padding-left: 20px; font-size: 0.95rem; }
+    .ans-box { background: #e6f4ea; border-left: 4px solid #34a853; padding: 8px; margin-top: 8px; font-size: 0.9rem; }
+    .exp-box { background: #f0f8ff; border-left: 4px solid #0066cc; padding: 8px; margin-top: 6px; font-size: 0.9rem; }
   </style>
 </head>
 <body>
 
   <header>
-    <h1>高校全15科目 クイズ演習ポータル</h1>
-    <p>解いて練習するか、問題・解答リストをじっくり見直すか、目的に合わせて選んでください！</p>
+    <h1>高校全15科目 学習ポータル</h1>
+    <p>クイズ挑戦、問題・解答の全件閲覧、過去の学習成績の確認を切り替えて利用できます。</p>
   </header>
 
-  <div class="card">
-    <h3>📚 科目・履歴・閲覧選択</h3>
-    <p>各科目の実施日を選んで、「クイズを解く」または「問題と解答の一覧を見る」ことができます。</p>
-    
-    <div class="subject-grid" id="subject-list">
-      <!-- JavaScriptで動的にカードを生成します -->
+  <!-- 画面切り替えタブ -->
+  <div class="tab-menu">
+    <button class="tab-btn active" onclick="switchView('quiz')">🎯 クイズを解く</button>
+    <button class="tab-btn" onclick="switchView('list')">📖 問題・解答をすべて見る</button>
+    <button class="tab-btn" onclick="switchView('history')">📊 過去の正誤・成績</button>
+  </div>
+
+  <!-- ① クイズを解く画面 -->
+  <div id="view-quiz" class="view-section active">
+    <div class="card">
+      <h3>🎯 科目・難易度を選択してクイズ挑戦</h3>
+      <div class="subject-grid" id="quiz-subject-list"></div>
+    </div>
+  </div>
+
+  <!-- ② 問題・解答一覧画面 -->
+  <div id="view-list" class="view-section">
+    <div class="card">
+      <h3>📖 科目別・作問された問題一覧</h3>
+      <label>科目を選択:</label>
+      <select id="list-subject-select" onchange="loadQuestionList()">
+        <!-- JSで挿入 -->
+      </select>
+      <div id="question-list-container" style="margin-top: 15px;">
+        <p style="color: #666;">科目を選択してください。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ 過去の正誤・成績画面 -->
+  <div id="view-history" class="view-section">
+    <div class="card">
+      <h3>📊 過去の学習成績・正誤履歴</h3>
+      <div id="history-stats-container">
+        <p>これまでに解いたクイズの正答率や履歴データがここに集計されます。</p>
+      </div>
     </div>
   </div>
 
@@ -53,79 +101,110 @@
       { code: "info1", name: "情報I" }
     ];
 
-    const container = document.getElementById('subject-list');
+    // 画面タブ切り替え
+    function switchView(viewName) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
 
-    async function initPortal() {
-      for (const sub of subjects) {
+      if (viewName === 'quiz') {
+        document.querySelector('.tab-menu button:nth-child(1)').classList.add('active');
+        document.getElementById('view-quiz').classList.add('active');
+      } else if (viewName === 'list') {
+        document.querySelector('.tab-menu button:nth-child(2)').classList.add('active');
+        document.getElementById('view-list').classList.add('active');
+        loadQuestionList();
+      } else if (viewName === 'history') {
+        document.querySelector('.tab-menu button:nth-child(3)').classList.add('active');
+        document.getElementById('view-history').classList.add('active');
+        loadHistoryStats();
+      }
+    }
+
+    // ポータルの初期化
+    function initPortal() {
+      // 1. クイズ挑戦画面のカード生成
+      const quizContainer = document.getElementById('quiz-subject-list');
+      quizContainer.innerHTML = '';
+      subjects.forEach(sub => {
+        let diffOptions = '<option value="all">すべての難易度</option>';
+        for(let i=1; i<=20; i++) { diffOptions += `<option value="${i}">レベル ${i}</option>`; }
+
         const card = document.createElement('div');
         card.className = 'subject-card';
-
-        let dateOptions = '';
-        try {
-          const res = await fetch(`${sub.code}_history.json`);
-          if (res.ok) {
-            const dates = await res.json();
-            dates.forEach((d, idx) => {
-              const formattedDate = `${d.slice(0,4)}年${d.slice(4,6)}月${d.slice(6,8)}日`;
-              dateOptions += `<option value="${d}">${formattedDate}${idx === 0 ? ' (最新)' : ''}</option>`;
-            });
-          }
-        } catch (e) {}
-
-        if (!dateOptions) {
-          const now = new Date();
-          const yyyy = now.getFullYear();
-          const mm = String(now.getMonth() + 1).padStart(2, '0');
-          const dd = String(now.getDate()).padStart(2, '0');
-          const todayStr = `${yyyy}${mm}${dd}`;
-          dateOptions = `<option value="${todayStr}">${yyyy}年${mm}月${dd}日 (最新)</option>`;
-        }
-
         card.innerHTML = `
           <h4>${sub.name}</h4>
-          <label>実施日を選ぶ:</label>
-          <select id="date-${sub.code}">
-            ${dateOptions}
-          </select>
-          <button class="btn" onclick="openQuiz('${sub.code}')">🎯 クイズを解く</button>
-          <button class="btn btn-sub" onclick="openViewList('${sub.code}')">📖 問題・解答一覧を見る</button>
+          <label>難易度:</label>
+          <select id="diff-${sub.code}">${diffOptions}</select>
+          <button class="btn" onclick="startQuiz('${sub.code}')">🎯 このクイズを解く</button>
         `;
-        container.appendChild(card);
+        quizContainer.appendChild(card);
+      });
+
+      // 2. 一覧画面のセレクトボックス生成
+      const listSelect = document.getElementById('list-subject-select');
+      listSelect.innerHTML = '';
+      subjects.forEach(sub => {
+        const opt = document.createElement('option');
+        opt.value = sub.code;
+        opt.innerText = sub.name;
+        listSelect.appendChild(opt);
+      });
+    }
+
+    // クイズ挑戦ページへ飛ぶ（またはモーダル展開）
+    async function startQuiz(code) {
+      // 実際の実装ではここで db_{code}.json を読み込んで演習画面に渡すことができます
+      alert(`${code} のクイズ起動処理（データベースから読み込み）`);
+    }
+
+    // すべての問題・解答一覧を読み込んで表示
+    async function loadQuestionList() {
+      const select = document.getElementById('list-subject-select');
+      const code = select.value;
+      const container = document.getElementById('question-list-container');
+      container.innerHTML = "<p>データを読み込み中...</p>";
+
+      try {
+        const res = await fetch(`db_${code}.json`);
+        if (!res.ok) {
+          container.innerHTML = `<p style="color: red;">まだこの科目の問題データ（db_${code}.json）が生成されていません。</p>`;
+          return;
+        }
+        const questions = await res.json();
+        if (questions.length === 0) {
+          container.innerHTML = "<p>登録されている問題はありません。</p>";
+          return;
+        }
+
+        let html = `<p><strong>全 ${questions.length} 問</strong>が登録されています。</p>`;
+        questions.forEach((q, idx) => {
+          const optsHtml = q.opts.map((o, i) => `<li style="${i === q.a ? 'font-weight:bold; color:#34a853;' : ''}">${i+1}. ${o} ${i === q.a ? ' (正解)' : ''}</li>`).join('');
+          html += `
+            <div class="q-item-card">
+              <div><span class="badge">レベル ${q.difficulty || 1}</span> ID: ${q.id || idx+1}</div>
+              <p><strong>Q. ${q.q}</strong></p>
+              <ul class="opts-list">${optsHtml}</ul>
+              <div class="ans-box"><strong>💡 正解:</strong> ${q.a + 1}. ${q.opts[q.a]}</div>
+              <div class="exp-box"><strong>📖 解説:</strong> ${q.exp || '解説なし'}</div>
+            </div>
+          `;
+        });
+        container.innerHTML = html;
+      } catch (e) {
+        container.innerHTML = `<p style="color: red;">データの読み込みに失敗しました。</p>`;
       }
     }
 
-    async function openQuiz(code) {
-      const dateSelect = document.getElementById(`date-${code}`);
-      const dateStr = dateSelect ? dateSelect.value : "";
-      const filename = `${code}_LevelQuiz_${dateStr}.html`;
-
-      try {
-        const response = await fetch(filename, { method: 'HEAD' });
-        if (response.ok) {
-          window.open(filename, '_blank');
-        } else {
-          alert("指定した日時のクイズファイルが見つかりません。");
-        }
-      } catch (error) {
-        alert("ファイルの確認中にエラーが発生しました。");
+    // 過去の正誤・成績履歴の読み込み（localStorage等と連携可能）
+    function loadHistoryStats() {
+      const container = document.getElementById('history-stats-container');
+      // ブラウザのlocalStorageに保存された解答履歴を読み込む仕組みなどをここに構築できます
+      const savedHistory = localStorage.getItem('quiz_history');
+      if (!savedHistory) {
+        container.innerHTML = `<p>まだこのブラウザでの解答履歴がありません。クイズを解くとここに正答率や過去の正誤が記録されます。</p>`;
+        return;
       }
-    }
-
-    async function openViewList(code) {
-      const dateSelect = document.getElementById(`date-${code}`);
-      const dateStr = dateSelect ? dateSelect.value : "";
-      const filename = `${code}_ViewList_${dateStr}.html`;
-
-      try {
-        const response = await fetch(filename, { method: 'HEAD' });
-        if (response.ok) {
-          window.open(filename, '_blank');
-        } else {
-          alert("指定した日時の問題・解答一覧ファイルが見つかりません。");
-        }
-      } catch (error) {
-        alert("ファイルの確認中にエラーが発生しました。");
-      }
+      // 履歴データのパースと表示処理
     }
 
     initPortal();
