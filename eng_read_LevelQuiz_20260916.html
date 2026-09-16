@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>英語リーディング - クイズ</title>
+    <title>英語リーディング - クイズ & 学習サポート</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -13,33 +13,72 @@
             color: #333;
         }
         .container {
-            max-width: 600px;
-            margin: 40px auto;
+            max-width: 650px;
+            margin: 30px auto;
             background: #fff;
             padding: 30px;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
         h1 {
-            font-size: 1.2rem;
-            color: #4a5568;
+            font-size: 1.3rem;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            font-size: 0.9rem;
+            color: #718096;
             margin-bottom: 20px;
         }
-        .setup-box {
+        /* タブ切り替えボタン */
+        .tab-menu {
+            display: flex;
+            gap: 10px;
             margin-bottom: 20px;
-            padding: 15px;
+            border-bottom: 2px solid #edf2f7;
+            padding-bottom: 10px;
+        }
+        .tab-btn {
             background: #edf2f7;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #4a5568;
+        }
+        .tab-btn.active {
+            background: #3182ce;
+            color: #fff;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        /* セットアップ画面 */
+        .setup-box {
+            background: #f7fafc;
+            padding: 20px;
             border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
         }
         .setup-box label {
             font-weight: bold;
-            margin-right: 10px;
+            display: block;
+            margin-bottom: 8px;
         }
         .setup-box select {
-            padding: 5px 10px;
-            border-radius: 4px;
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
             border: 1px solid #cbd5e0;
+            margin-bottom: 15px;
+            font-size: 1rem;
         }
+        /* クイズ画面 */
         .question-box {
             font-size: 1.1rem;
             font-weight: bold;
@@ -87,44 +126,112 @@
             border-radius: 6px;
             cursor: pointer;
             font-size: 1rem;
-            margin-top: 15px;
+            width: 100%;
+            text-align: center;
         }
         .btn:hover {
             background: #2b6cb0;
         }
-        .quiz-area {
-            display: none;
+        .btn-secondary {
+            background: #718096;
+            margin-top: 10px;
         }
+        .btn-secondary:hover {
+            background: #4a5568;
+        }
+        /* 履歴・まとめのスタイル */
+        .history-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .history-item {
+            background: #f7fafc;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            border-left: 4px solid #3182ce;
+            font-size: 0.95rem;
+        }
+        .memo-section h3 {
+            color: #2b6cb0;
+            font-size: 1.1rem;
+            margin-top: 15px;
+        }
+        .memo-section p {
+            line-height: 1.6;
+            font-size: 0.95rem;
+            background: #fffaf0;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #feebc8;
+        }
+        .quiz-area { display: none; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>英語リーディング (レベル 3)</h1>
-        
-        <!-- 問題数選択画面 -->
-        <div id="setup-area" class="setup-box">
-            <label for="num-questions">出題数を選んでください:</label>
-            <select id="num-questions">
-                <option value="2">2問 (テスト用)</option>
-                <option value="5">5問</option>
-                <option value="10">10問</option>
-            </select>
-            <br>
-            <button class="btn" onclick="startQuiz()">クイズを開始</button>
+        <div class="subtitle">AI高校生クイズポータル - 学習サポート版</div>
+
+        <!-- タブ切り替えメニュー -->
+        <div class="tab-menu" id="main-tabs">
+            <button class="tab-btn active" onclick="switchTab('quiz-tab')">クイズを解く</button>
+            <button class="tab-btn" onclick="switchTab('memo-tab')">文法・単語のまとめ</button>
+            <button class="tab-btn" onclick="switchTab('history-tab')">過去の記録</button>
         </div>
 
-        <!-- クイズ出題画面 -->
-        <div id="quiz-area" class="quiz-area">
-            <div style="font-size: 0.9rem; color: #718096; margin-bottom: 10px;" id="progress-text"></div>
-            <div class="question-box" id="question-text"></div>
-            <ul class="options-list" id="options-list"></ul>
-            <div id="result-box" class="result-box"></div>
-            <button id="next-btn" class="btn" style="display:none;" onclick="nextQuestion()">次の問題へ</button>
+        <!-- ① クイズタブ -->
+        <div id="quiz-tab" class="tab-content active">
+            <!-- セットアップ画面 -->
+            <div id="setup-area" class="setup-box">
+                <label for="num-questions">出題数を選んでください:</label>
+                <select id="num-questions">
+                    <option value="2">2問 (テスト用)</option>
+                    <option value="5">5問</option>
+                </select>
+                <button class="btn" onclick="startQuiz()">クイズを開始する</button>
+            </div>
+
+            <!-- クイズ出題画面 -->
+            <div id="quiz-area" class="quiz-area">
+                <div style="font-size: 0.9rem; color: #718096; margin-bottom: 10px;" id="progress-text"></div>
+                <div class="question-box" id="question-text"></div>
+                <ul class="options-list" id="options-list"></ul>
+                <div id="result-box" class="result-box"></div>
+                <button id="next-btn" class="btn" style="display:none; margin-top:15px;" onclick="nextQuestion()">次の問題へ</button>
+            </div>
+        </div>
+
+        <!-- ② 文法・単語のまとめタブ -->
+        <div id="memo-tab" class="tab-content memo-section">
+            <h2>📖 重要文法・キーフレーズまとめ</h2>
+            
+            <h3>1. look forward to ＋ 動名詞(-ing)</h3>
+            <p>「〜を楽しみに待つ」という意味の表現。to が不定詞ではなく<strong>前置詞</strong>のため、後ろに動詞が来る場合は必ず動名詞（-ing）になります。</p>
+
+            <h3>2. 関係代名詞の役割</h3>
+            <p>名詞を後ろから修飾する形容詞節を作ります。「接続詞 ＋ 代名詞」の働きを兼ねており、文の主語や目的語の代わりを務めます。動詞を修飾することはできません。</p>
+
+            <h3>3. 使役動詞 (make / have / let)</h3>
+            <p>「人に〜させる」という意味を表します。最大の特徴は、使役動詞のあとに続く動詞が<strong>「原形（元の形）」</strong>になる点です。</p>
+
+            <h3>4. 仮定法過去 (If ~ 過去形, 助動詞過去形 + 原形)</h3>
+            <p>「もし今〜なら、…なのに」と、現在の事実とは異なる仮定を述べる表現です。</p>
+        </div>
+
+        <!-- ③ 過去の記録タブ -->
+        <div id="history-tab" class="tab-content">
+            <h2>🏆 過去の挑戦記録</h2>
+            <p style="font-size: 0.9rem; color: #718096;">このブラウザに保存されたあなたの学習履歴です。</p>
+            <ul id="history-list" class="history-list">
+                <li class="history-item">まだ挑戦履歴がありません。クイズを解いてみましょう！</li>
+            </ul>
+            <button class="btn btn-secondary" onclick="clearHistory()" style="margin-top: 20px;">履歴をクリアする</button>
         </div>
     </div>
 
     <script>
-        // サンプル問題プール（必要に応じて増やせます）
         const allQuizData = [
             {
                 id: 1,
@@ -177,9 +284,21 @@
         let currentIdx = 0;
         let score = 0;
 
+        // タブ切り替え関数
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+
+            if (tabId === 'history-tab') {
+                loadHistory();
+            }
+        }
+
         function startQuiz() {
             const selectVal = parseInt(document.getElementById("num-questions").value);
-            // 選択された問題数（プール数を超えないように調整）
             activeQuizData = allQuizData.slice(0, selectVal);
             currentIdx = 0;
             score = 0;
@@ -213,7 +332,6 @@
             const q = activeQuizData[currentIdx];
             const resultBox = document.getElementById("result-box");
             
-            // 選択肢のクリックを無効化
             const items = document.querySelectorAll(".option-item");
             items.forEach((item, idx) => {
                 item.onclick = null;
@@ -235,7 +353,6 @@
                 resultBox.innerHTML = `<strong>❌ 不正解...</strong><br>${q.exp}`;
             }
 
-            // 次へボタン、または終了時の処理
             const nextBtn = document.getElementById("next-btn");
             if (currentIdx < activeQuizData.length - 1) {
                 nextBtn.innerText = "次の問題へ";
@@ -256,6 +373,8 @@
         }
 
         function showResult() {
+            saveHistory(score, activeQuizData.length);
+
             document.getElementById("quiz-area").innerHTML = `
                 <div style="text-align: center; padding: 20px;">
                     <h2>🎉 クイズ終了！お疲れ様でした！</h2>
@@ -263,6 +382,47 @@
                     <button class="btn" onclick="location.reload()">最初に戻る</button>
                 </div>
             `;
+        }
+
+        // 履歴の保存 (LocalStorage)
+        function saveHistory(correct, total) {
+            let history = JSON.parse(localStorage.getItem('quiz_history') || '[]');
+            const now = new Date();
+            const dateStr = `${now.getMonth() + 1}/${now.getDate()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            
+            history.unshift({
+                date: dateStr,
+                score: correct,
+                total: total
+            });
+
+            // 最大10件まで保存
+            if (history.length > 10) history.pop();
+            localStorage.setItem('quiz_history', JSON.stringify(history));
+        }
+
+        // 履歴の読み込み
+        function loadHistory() {
+            let history = JSON.parse(localStorage.getItem('quiz_history') || '[]');
+            const listEl = document.getElementById('history-list');
+            
+            if (history.length === 0) {
+                listEl.innerHTML = `<li class="history-item">まだ挑戦履歴がありません。クイズを解いてみましょう！</li>`;
+                return;
+            }
+
+            listEl.innerHTML = '';
+            history.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'history-item';
+                li.innerHTML = `<strong>${item.date}</strong> 挑戦 — 正解数: <strong>${item.score} / ${item.total}</strong> 問`;
+                listEl.appendChild(li);
+            });
+        }
+
+        function clearHistory() {
+            localStorage.removeItem('quiz_history');
+            loadHistory();
         }
     </script>
 </body>
