@@ -25,6 +25,21 @@
             color: #4a5568;
             margin-bottom: 20px;
         }
+        .setup-box {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #edf2f7;
+            border-radius: 8px;
+        }
+        .setup-box label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .setup-box select {
+            padding: 5px 10px;
+            border-radius: 4px;
+            border: 1px solid #cbd5e0;
+        }
         .question-box {
             font-size: 1.1rem;
             font-weight: bold;
@@ -47,10 +62,6 @@
         }
         .option-item:hover {
             background: #e2e8f0;
-        }
-        .option-item.selected {
-            background: #3182ce;
-            color: #fff;
         }
         .result-box {
             margin-top: 20px;
@@ -81,13 +92,31 @@
         .btn:hover {
             background: #2b6cb0;
         }
+        .quiz-area {
+            display: none;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>英語リーディング (レベル 3) - テスト問題</h1>
-        <div id="quiz-container">
-            <div class="question-box" id="question-text">読み込み中...</div>
+        <h1>英語リーディング (レベル 3)</h1>
+        
+        <!-- 問題数選択画面 -->
+        <div id="setup-area" class="setup-box">
+            <label for="num-questions">出題数を選んでください:</label>
+            <select id="num-questions">
+                <option value="2">2問 (テスト用)</option>
+                <option value="5">5問</option>
+                <option value="10">10問</option>
+            </select>
+            <br>
+            <button class="btn" onclick="startQuiz()">クイズを開始</button>
+        </div>
+
+        <!-- クイズ出題画面 -->
+        <div id="quiz-area" class="quiz-area">
+            <div style="font-size: 0.9rem; color: #718096; margin-bottom: 10px;" id="progress-text"></div>
+            <div class="question-box" id="question-text"></div>
             <ul class="options-list" id="options-list"></ul>
             <div id="result-box" class="result-box"></div>
             <button id="next-btn" class="btn" style="display:none;" onclick="nextQuestion()">次の問題へ</button>
@@ -95,7 +124,8 @@
     </div>
 
     <script>
-        const quizData = [
+        // サンプル問題プール（必要に応じて増やせます）
+        const allQuizData = [
             {
                 id: 1,
                 q: "次の英文の空欄に入る最も適切なものを選べ。\n'She is looking forward to (  ) her friends in Tokyo.'",
@@ -114,14 +144,55 @@
                 ],
                 a: 3,
                 exp: "関係代名詞は形容詞節を作って名詞を修飾します。動詞や文全体を修飾するのは副詞や副詞節の役割です。"
+            },
+            {
+                id: 3,
+                q: "次のうち、使役動詞として一般的に挙げられるものはどれか。",
+                opts: ["want", "hope", "make", "decide"],
+                a: 2,
+                exp: "make, have, let は使役動詞と呼ばれ、「〜させる」という意味を持ちます。"
+            },
+            {
+                id: 4,
+                q: "次の文の空欄に入る最も適切なものを選べ。\n'If I had time, I (  ) help you.'",
+                opts: ["will", "would", "can", "may"],
+                a: 1,
+                exp: "仮定法過去の文（If + 主語 + 過去形 ~, 主語 + 助動詞の過去形 + 原形）なので would が適切です。"
+            },
+            {
+                id: 5,
+                q: "次のうち、受動態（受け身）の基本形として正しいものはどれか。",
+                opts: [
+                    "be動詞 + 過去分詞",
+                    "have + 過去分詞",
+                    "動詞の原形 + ing",
+                    "助動詞 + 動詞の原形"
+                ],
+                a: 0,
+                exp: "受動態は「be動詞 + 過去分詞」の形で表されます。"
             }
         ];
 
+        let activeQuizData = [];
         let currentIdx = 0;
+        let score = 0;
 
-        function loadQuiz() {
-            const q = quizData[currentIdx];
-            document.getElementById("question-text").innerText = `問${currentIdx + 1}. ${q.q}`;
+        function startQuiz() {
+            const selectVal = parseInt(document.getElementById("num-questions").value);
+            // 選択された問題数（プール数を超えないように調整）
+            activeQuizData = allQuizData.slice(0, selectVal);
+            currentIdx = 0;
+            score = 0;
+
+            document.getElementById("setup-area").style.display = "none";
+            document.getElementById("quiz-area").style.display = "block";
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const q = activeQuizData[currentIdx];
+            document.getElementById("progress-text").innerText = `問題 ${currentIdx + 1} / ${activeQuizData.length}`;
+            document.getElementById("question-text").innerText = q.q;
             const optList = document.getElementById("options-list");
             optList.innerHTML = "";
             
@@ -139,10 +210,10 @@
         }
 
         function selectAnswer(selectedIdx) {
-            const q = quizData[currentIdx];
+            const q = activeQuizData[currentIdx];
             const resultBox = document.getElementById("result-box");
             
-            // 選択肢の無効化
+            // 選択肢のクリックを無効化
             const items = document.querySelectorAll(".option-item");
             items.forEach((item, idx) => {
                 item.onclick = null;
@@ -158,25 +229,41 @@
             if (selectedIdx === q.a) {
                 resultBox.className = "result-box correct";
                 resultBox.innerHTML = `<strong>⭕ 正解！</strong><br>${q.exp}`;
+                score++;
             } else {
                 resultBox.className = "result-box incorrect";
                 resultBox.innerHTML = `<strong>❌ 不正解...</strong><br>${q.exp}`;
             }
 
-            if (currentIdx < quizData.length - 1) {
-                document.getElementById("next-btn").style.display = "block";
+            // 次へボタン、または終了時の処理
+            const nextBtn = document.getElementById("next-btn");
+            if (currentIdx < activeQuizData.length - 1) {
+                nextBtn.innerText = "次の問題へ";
+                nextBtn.style.display = "block";
             } else {
-                document.getElementById("next-btn").style.display = "none";
-                resultBox.innerHTML += `<br><br><strong>🎉 すべての問題が終了しました！お疲れ様でした！</strong>`;
+                nextBtn.innerText = "結果を見る（終了）";
+                nextBtn.style.display = "block";
             }
         }
 
         function nextQuestion() {
             currentIdx++;
-            loadQuiz();
+            if (currentIdx < activeQuizData.length) {
+                loadQuestion();
+            } else {
+                showResult();
+            }
         }
 
-        loadQuiz();
+        function showResult() {
+            document.getElementById("quiz-area").innerHTML = `
+                <div style="text-align: center; padding: 20px;">
+                    <h2>🎉 クイズ終了！お疲れ様でした！</h2>
+                    <p style="font-size: 1.2rem; margin: 20px 0;">正解数: <strong>${score} / ${activeQuizData.length}</strong> 問</p>
+                    <button class="btn" onclick="location.reload()">最初に戻る</button>
+                </div>
+            `;
+        }
     </script>
 </body>
 </html>
