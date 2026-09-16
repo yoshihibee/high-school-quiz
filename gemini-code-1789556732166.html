@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>高校全15科目 クイズ演習ポータル</title>
+  <style>
+    body { font-family: sans-serif; max-width: 900px; margin: 20px auto; padding: 20px; line-height: 1.6; background: #fdfbf7; color: #333; }
+    header { text-align: center; margin-bottom: 30px; }
+    .card { border: 1px solid #ddd; padding: 20px; border-radius: 8px; background: #fff; box-shadow: 2px 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; }
+    .subject-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; margin-top: 15px; }
+    .subject-card { border: 1px solid #cce0ff; padding: 15px; border-radius: 6px; background: #f0f8ff; }
+    .subject-card h4 { margin: 0 0 10px 0; color: #0066cc; }
+    .btn { background: #0066cc; color: #fff; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; width: 100%; margin-top: 5px; }
+    .btn:hover { background: #004c99; }
+    select { padding: 6px; font-size: 14px; width: 100%; margin-bottom: 8px; box-sizing: border-box; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>高校全15科目 クイズ演習ポータル</h1>
+    <p>解きたい科目と難易度を選んで、毎日の学習を進めましょう！</p>
+  </header>
+
+  <div class="card">
+    <h3>📚 科目・難易度セレクト一覧</h3>
+    <p>自動生成された各科目のHTMLファイル（例: <code>eng_read_LevelQuiz_20260916.html</code> など）が同じフォルダ（またはデスクトップ）にある状態であれば、以下のボタンやファイル読み込みからすぐに演習を始められます。</p>
+    
+    <div class="subject-grid" id="subject-list">
+      <!-- JavaScriptで動的にカードを生成します -->
+    </div>
+  </div>
+
+  <script>
+    const subjects = [
+      { code: "eng_read", name: "英語リーディング" },
+      { code: "eng_listen", name: "英語リスニング" },
+      { code: "math1", name: "数学I" },
+      { code: "math_a", name: "数学A" },
+      { code: "math2", name: "数学Ⅱ" },
+      { code: "math_b", name: "数学B" },
+      { code: "math_c", name: "数学C" },
+      { code: "kokugo_gen", name: "現代文" },
+      { code: "kokugo_ko", name: "古文" },
+      { code: "kokugo_kan", name: "漢文" },
+      { code: "chem_base", name: "化学基礎" },
+      { code: "earth_base", name: "地学基礎" },
+      { code: "geo_tankyu", name: "地理総合探究" },
+      { code: "seikei", name: "公共政治経済" },
+      { code: "info1", name: "情報I" }
+    ];
+
+    const container = document.getElementById('subject-list');
+
+    subjects.forEach(sub => {
+      const card = document.createElement('div');
+      card.className = 'subject-card';
+      
+      let diffOptions = '<option value="all">すべての難易度</option>';
+      for(let i=1; i<=20; i++) {
+        diffOptions += `<option value="${i}">レベル ${i}</option>`;
+      }
+
+      card.innerHTML = `
+        <h4>${sub.name}</h4>
+        <select id="diff-${sub.code}">
+          ${diffOptions}
+        </select>
+        <button class="btn" onclick="openQuiz('${sub.code}')">この科目を開く</button>
+      `;
+      container.appendChild(card);
+    });
+
+    function openQuiz(code) {
+      // 日付部分は実際のファイル名に合わせて適宜変更、または各科目のアプリを開く仕様にします
+      // ここでは自動生成されたファイル名規則（科目コード_LevelQuiz_日付.html）を想定
+      const dateStr = "20260916"; // 必要に応じて調整
+      const filename = `${code}_LevelQuiz_${dateStr}.html`;
+      
+      // 同一フォルダ内にあるファイルを直接開く試み
+      window.open(filename, '_blank');
+    }
+  </script>
+
+</body>
+</html>
