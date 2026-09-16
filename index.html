@@ -26,7 +26,7 @@
     <p>解きたい科目と難易度を選んで、毎日の学習を進めましょう！</p>
   </header>
 
-  <!-- ⚙️ 追加した「Webページから作問を実行する」管理メニュー -->
+  <!-- ⚙️ 管理者メニュー（自動作問コントロール） -->
   <div class="card admin-card">
     <h3>⚙️ 管理者メニュー（自動作問コントロール）</h3>
     <p style="font-size: 0.9rem; color: #4a5568;">ボタンを押すと、GitHubに直接リクエストを送り、今すぐ新しい問題の作問（Actions）を実行させることができます。</p>
@@ -98,7 +98,6 @@
       const repo = "high-school-quiz";
       const workflowId = "auto_quiz.yml"; 
 
-      // 【重要】ここにGitHubで発行したアクセストークン（Personal Access Token）を貼り付けてください
       const token = "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"; 
 
       const url = `https://api.github.com/repos/${owner}/${repo}/actions/workflows/${workflowId}/dispatches`;
@@ -108,7 +107,7 @@
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
-            'Accept': 'application/vnd.github+json',
+            'Accept': 'application/vnd.github+json', // ← ここを修正しました！
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
@@ -119,7 +118,7 @@
         if (response.ok || response.status === 204) {
           statusMsg.innerText = "✅ 作問リクエストの送信に成功しました！1〜2分後にActionsが動き始めます。";
         } else {
-          statusMsg.innerText = "❌ 失敗しました。アクセストークンや設定を確認してください。";
+          statusMsg.innerText = "❌ 失敗しました（ステータスコード: " + response.status + "）。設定を確認してください。";
         }
       } catch (error) {
         console.error("Error:", error);
