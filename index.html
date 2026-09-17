@@ -32,10 +32,17 @@
     .subject-card::before { content: ""; position: absolute; top: 0; left: 0; width: 5px; height: 100%; background: var(--card-accent, #3b82f6); }
     .subject-card h4 { margin: 0 0 10px 0; font-size: 1.1rem; }
 
-    .roadmap-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; margin-top: 15px; }
-    .roadmap-card { border: 1px solid var(--border-color); padding: 15px; border-radius: 6px; background: #111827; position: relative; }
-    .roadmap-card h4 { margin: 0 0 8px 0; font-size: 1.05rem; }
-    .roadmap-card p { font-size: 0.85rem; color: var(--text-muted); margin: 0; line-height: 1.5; }
+    /* ロードマップ用カードとアコーディオン詳細 */
+    .roadmap-list { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
+    .roadmap-card { border: 1px solid var(--border-color); border-radius: 6px; background: #111827; overflow: hidden; transition: border-color 0.2s; }
+    .roadmap-header { padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+    .roadmap-header:hover { background: rgba(255,255,255,0.02); }
+    .roadmap-header h4 { margin: 0; font-size: 1.1rem; }
+    .roadmap-toggle-icon { font-size: 0.85rem; color: var(--text-muted); transition: transform 0.3s; }
+    
+    .roadmap-body { display: none; padding: 0 15px 15px 15px; border-top: 1px solid var(--border-color); background: rgba(0,0,0,0.15); }
+    .roadmap-body ol { margin: 12px 0 0 0; padding-left: 20px; }
+    .roadmap-body li { margin-bottom: 8px; font-size: 0.95rem; color: #cbd5e1; }
 
     .btn { background: var(--accent); color: #fff; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; width: 100%; margin-top: 8px; font-weight: bold; }
     .btn:hover { opacity: 0.9; }
@@ -84,7 +91,7 @@
 
   <header>
     <h1>高校全15科目 学習・演習総合ポータル</h1>
-    <p>ダークモード ｜ 科別カラー ｜ 3年間カリキュラム網羅 ｜ 個別正誤管理</p>
+    <p>ダークモード ｜ 科別カラー ｜ 3年間カリキュラム詳細一覧 ｜ 個別正誤管理</p>
   </header>
 
   <!-- タブ切り替えメニュー -->
@@ -120,12 +127,12 @@
     </div>
   </div>
 
-  <!-- ② 3年間学習ロードマップ画面（新設） -->
+  <!-- ② 3年間学習ロードマップ画面（順番付きアコーディオン） -->
   <div id="view-roadmap" class="view-section">
     <div class="card">
       <h3>📖 高校全15科目 3年間学習単元ロードマップ</h3>
       <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:15px;">
-        高校3年間で学習すべき全単元・重要テーマを網羅しています。各科目の出題範囲や全体像の把握にご活用ください。
+        科目をクリックすると、3年間で学習すべき重要単元が「1から終わりまで」順番に展開されます。
       </p>
       <div class="roadmap-list" id="roadmap-container"></div>
     </div>
@@ -167,22 +174,175 @@
   </div>
 
   <script>
+    // 各科目の3年間で学ぶべき重要単元を、1から順番の配列（ステップ）として定義
     const subjects = [
-      { code: "eng_read", name: "英語リーディング", color: "#3b82f6", scope: "高度な長文読解、段落の要約、論理展開の把握、速読力、抽象的テーマ（哲学・環境・科学等）の英文、文法・構文の総合応用" },
-      { code: "eng_listen", name: "英語リスニング", color: "#60a5fa", scope: "日常会話・学校生活のやり取り、アナウンス・講義の聞き取り、グラフや表を伴う音声情報処理、ディスカッションの意図把握" },
-      { code: "math1", name: "数学I", color: "#10b981", scope: "数と式（展開・因数分解・実数・不等式）、二次関数（グラフ・最大最小・方程式と不等式）、図形と計量（三角比・正弦定理・余弦定理）、データの分析" },
-      { code: "math_a", name: "数学A", color: "#34d399", scope: "場合の数と確率（順列・組み合わせ・条件付き確率）、図形の性質（三角形・円の性質、幾何学的証明）、整数論（ユークリッドの互除法・不定方程式・合同式）" },
-      { code: "math2", name: "数学Ⅱ", color: "#059669", scope: "式と証明（高次方程式・二項定理・証明）、複素数と方程式、図形と方程式（直線・円・軌跡・領域）、三角関数、指数関数・対数関数、微分・積分の基礎" },
-      { code: "math_b", name: "数学B", color: "#047857", scope: "数列（等差・等比・様々な数列・漸化式・数学的帰納法）、統計的な推測（確率変数・確率分布・母集団と標本）" },
-      { code: "math_c", name: "数学C", color: "#6ee7b7", scope: "ベクトル（平面・空間のベクトル・内積・位置ベクトル）、平面上の曲線（二次曲線：放物線・楕円・双曲線、媒介変数表示、極座標）、複素数平面" },
-      { code: "kokugo_gen", name: "現代文", color: "#f59e0b", scope: "論理的思考力を要する評論（科学・文化・社会・哲学）、心情や人間関係を描いた小説、随筆、漢字・語彙・文学史の知識" },
-      { code: "kokugo_ko", name: "古文", color: "#fbbf24", scope: "古典文法（活用・助動詞・敬語・識別）、古文単語、重要作品の読解（平安〜江戸期の物語・日記・随筆・紀行文）、和歌の修辞法" },
-      { code: "kokugo_kan", name: "漢文", color: "#d97706", scope: "漢字の読み方・意味、返り点・書き下し文のルール、重要句形（使役・受身・反語・詠嘆・仮定・否定）、漢詩の形式、中国の思想家・歴史" },
-      { code: "chem_base", name: "化学基礎", color: "#8b5cf6", scope: "物質の構成（原子・分子・イオン・化学結合）、物質量（モル・化学反応式・濃度）、酸と塩基（中和滴定）、酸化還元反応" },
-      { code: "earth_base", name: "地学基礎", color: "#a78bfa", scope: "地球の構造と活動（プレートテクトニクス・地震・火山）、大気と海洋の動き（気象・海流・地球温暖化）、宇宙の構造（太陽系・恒星・銀河系）" },
-      { code: "geo_tankyu", name: "地理総合探究", color: "#ec4899", scope: "地図・GIS（地理情報システム）の活用、身近な地域調査、自然環境と防災、資源・エネルギーと産業、人口・都市・村落問題、グローバル化" },
-      { code: "seikei", name: "公共政治経済", color: "#f43f5e", scope: "民主主義の基本原理と日本国憲法、現代の政治機構・政党・選挙、国際社会の動向、経済体制と市場経済、金融・財政・社会保障、労働問題" },
-      { code: "info1", name: "情報I", color: "#06b6d4", scope: "情報社会とデザイン、コミュニケーションと情報セキュリティ、コンピューターの仕組みとプログラミング（Python等）、データ分析とモデル化" }
+      {
+        code: "eng_read", name: "英語リーディング", color: "#3b82f6",
+        steps: [
+          "基本文型の復習と短文の構造把握（SVO・SVOCの理解）",
+          "関係代名詞・関係副詞を用いた複雑な名詞修飾の読解",
+          "分詞構文・仮定法など発展的文法事項を含む英文の精読",
+          "段落の論理展開（序論・本論・結論）の把握とトピックセンテンスの特定",
+          "抽象的なテーマ（哲学・環境問題・科学技術など）に関する長文の論理的読解",
+          "制限時間内での情報処理・速読力および長文全体の要約力トレーニング"
+        ]
+      },
+      {
+        code: "eng_listen", name: "英語リスニング", color: "#60a5fa",
+        steps: [
+          "身近な日常会話・学校生活に関する短いやり取りの聞き取り",
+          "疑問詞（Who, What, Where, When, Why, How）に対する正確な応答の把握",
+          "アナウンス、電話の伝言、簡単な講義などのまとまった音声の理解",
+          "グラフ、表、地図などの視覚的情報と連動した音声データの処理",
+          "複数の話者による意見交換やディスカッションの意図・主張の聴き取り",
+          "スピードのあるニュースや英語圏の自然なスピードの講義に対する実践的リスニング"
+        ]
+      },
+      {
+        code: "math1", name: "math1", color: "#10b981",
+        steps: [
+          "数と式（展開・因数分解の工夫、実数の性質、絶対値と不等式）",
+          "二次関数（グラフの平行移動・対称移動、頂点と軸の求め方）",
+          "二次関数の最大値・最小値（変域に制限がある場合やパラメータを含む場合）",
+          "二次方程式と二次不等式（解の存在範囲、グラフとの位置関係）",
+          "図形と計量（三角比の定義、正弦定理・余弦定理を用いた図形の計量）",
+          "データの分析（代表値、分散・標準偏差、相関係数と散布図の読み取り）"
+        ]
+      },
+      {
+        code: "math_a", name: "数学A", color: "#34d399",
+        steps: [
+          "場合の数（和の法則・積の法則、順列 P と組み合わせ C の使い分け）",
+          "確率の基本（独立な試行、反復試行の確率、期待値）",
+          "条件付き確率と確率の乗法定理・加法定理",
+          "図形の性質（三角形の内心・外心・重心・垂心の性質、チェバ・メネラウスの定理）",
+          "円の性質（円周角の定理、接線と弦の作る角、方べきの定理、2つの円の位置関係）",
+          "整数論（約数・倍数、ユークリッドの互除法、一次不定方程式の整数解、合同式）"
+        ]
+      },
+      {
+        code: "math2", name: "数学Ⅱ", color: "#059669",
+        steps: [
+          "式と証明（高次方程式の解法、因数定理、二項定理、不等式の証明）",
+          "複素数と方程式（虚数単位 i、二次方程式の虚数解、解と係数の関係）",
+          "図形と方程式（点と直線の距離、円の方程式、軌跡と領域の図示）",
+          "三角関数（一般角、弧度法、三角関数のグラフ、加法定理と2倍角・半角の公式）",
+          "指数関数と対数関数（指数法則の拡張、対数の性質、底の変換公式、方程式・不等式）",
+          "微分・積分の基礎（平均変化率、微分係数、導関数、接線の方程式、面積の求め方）"
+        ]
+      },
+      {
+        code: "math_b", name: "数学B", color: "#047857",
+        steps: [
+          "数列の基礎（等差数列・等比数列の一般項と和、シグマ記号 Σ の計算）",
+          "様々な数列（階差数列、群数列、分数数列）",
+          "漸化式（等差・等比型、特性方程式型、階差型、置き換えによる解法）",
+          "数学的帰納法による等式・不等式の証明",
+          "確率変数と確率分布（離散型確率変数、平均・分散・標準偏差）",
+          "統計的な推測（正規分布の性質、母集団と標本調査、区間推定と仮説検定の基礎）"
+        ]
+      },
+      {
+        code: "math_c", name: "数学C", color: "#6ee7b7",
+        steps: [
+          "平面上のベクトル（ベクトルの演算、内積、成分表示、直線・円の方程式のベクトル表現）",
+          "空間のベクトル（座標空間、空間のベクトル、内積、平面の方程式）",
+          "平面上の曲線（放物線・楕円・双曲線の定義と標準方程式）",
+          "媒介変数表示と極座標・極方程式による曲線の表し方",
+          "複素数平面（複素数の幾何学的意味、ド・モアヴルの定理、図形的な回転・拡大縮小）"
+        ]
+      },
+      {
+        code: "kokugo_gen", name: "現代文", color: "#f59e0b",
+        steps: [
+          "評論の読解基礎（対比・因果関係・抽象と具体の構造を捉える）",
+          "現代社会・科学技術・文化論に関する論説文・評論の精読",
+          "小説の読解基礎（登場人物の心情変化、情景描写の役割、人間関係の把握）",
+          "随筆（エッセイ）の筆者の心情・主題の読み取り",
+          "漢字の読み書き、語彙力（慣用句・四字熟語・カタカナ語）、および文学史の基礎知識",
+          "記述式問題における論理的で過不足のない解答の構築力養成"
+        ]
+      },
+      {
+        code: "kokugo_ko", name: "古文", color: "#fbbf24",
+        steps: [
+          "古典文法の基礎（用言の活用、重要助動詞の意味・接続・活用）",
+          "敬語の体系（尊敬・謙譲・丁寧語の識別と、誰から誰への敬意かの把握）",
+          "古文単語（現代語とは意味が異なる重要古文単語の習得）",
+          "省略された主語や目的語の補い方（文脈把握のテクニック）",
+          "平安時代〜江戸時代の主要な作品（物語・日記・随筆・紀行文）の背景知識と読解",
+          "和歌の修辞法（掛詞・枕詞・縁語・序詞）と歌に込められた心情の読解"
+        ]
+      },
+      {
+        code: "kokugo_kan", name: "漢文", color: "#d97706",
+        steps: [
+          "漢字の読み方・返り点・書き下し文の基本ルール",
+          "置き字（於、于、乎、而など）の働きと構造の理解",
+          "重要句形1：否定（〜ず、〜なし）および部分否定・二重否定",
+          "重要句形2：使役（〜しむ）と受身（〜らる、〜に〜らる）",
+          "重要句形3：疑問・反語（〜か、〜や、〜なんぞ）および詠嘆（〜かな）",
+          "重要句形4：仮定（もし〜ば）と比較・選択（〜よりも、〜よりは）",
+          "漢詩の形式（絶句・律詩の押韻、対句構造）および中国の思想家・歴史的背景"
+        ]
+      },
+      {
+        code: "chem_base", name: "化学基礎", color: "#8b5cf6",
+        steps: [
+          "物質の構成粒子（原子の構造、電子配置、イオンと周期表）",
+          "化学結合（イオン結合、共有結合、金属結合と物質の性質）",
+          "物質量（モル・アボガドロ定数・質量パーセント濃度・モル濃度計算）",
+          "化学反応式と量的関係（モルを用いた質量の計算、過不足のある反応）",
+          "酸と塩基（水素イオン指数pH、強酸・弱酸、中和反応と中和滴定の実験操作）",
+          "酸化還元反応（酸化数の決定、酸化剤と還元剤、電池と電気分解の基礎）"
+        ]
+      },
+      {
+        code: "earth_base", name: "地学基礎", color: "#a78bfa",
+        steps: [
+          "地球の形状と内部構造（地殻・マントル・核、地震波の伝播とプレートテクトニクス）",
+          "地球の活動（火山活動、マグマの性質、地層の重なりと地質図の読み方）",
+          "大気と海洋の動き（大気の循環、海流のメカニズム、エルニーニョ現象と地球温暖化）",
+          "日本の気象と気候（気団、前線、台風、日本の四季の天候の特徴）",
+          "太陽系と惑星（太陽の構造、惑星の分類と特徴、ケプラーの法則の基礎）",
+          "宇宙の構造と歴史（恒星の性質・スペクトル、銀河系と宇宙の膨張・ビッグバン理論）"
+        ]
+      },
+      {
+        code: "geo_tankyu", name: "geo_tankyu", color: "#ec4899",
+        steps: [
+          "地図と地理情報システム（GIS）の活用、縮尺と地形図の読み取り",
+          "身近な地域の調査手法とフィールドワークの進め方",
+          "自然環境と防災（地震・津波・風水害のメカニズムとハザードマップ）",
+          "資源とエネルギー（化石燃料・再生可能エネルギーの分布と枯渇問題）",
+          "世界と日本の産業（農業・工業の地域的特色と国際分業）",
+          "人口問題・都市化・村落の変容、およびグローバル化に伴う国際課題"
+        ]
+      },
+      {
+        code: "seikei", name: "公共政治経済", color: "#f43f5e",
+        steps: [
+          "民主主義の基本原理と日本国憲法の三大原則（国民主権・基本的人権・平和主義）",
+          "日本の政治機構（国会・内閣・裁判所の三権分立、選挙制度と政党政治）",
+          "国際社会の動向（国際連合の仕組み、国際紛争と安全保障、地球規模の課題）",
+          "経済体制と市場経済の仕組み（需要と供給の法則、価格の自動調節機能、独占・寡占）",
+          "金融・財政・社会保障の役割（中央銀行の金融政策、国の歳入歳出、社会保険制度）",
+          "労働問題（労働基準法、労使関係）および現代の国際経済（自由貿易と保護貿易、為替レート）"
+        ]
+      },
+      {
+        code: "info1", name: "情報I", color: "#06b6d4",
+        steps: [
+          "情報社会と法規・デザイン（知的財産権、個人情報保護、情報モラル）",
+          "コミュニケーションとメディアの特性、プレゼンテーションの工夫",
+          "情報セキュリティ（暗号化技術、認証、マルウェア対策、バックアップ）",
+          "コンピュータのハードウェアとソフトウェアの仕組み、OSの役割",
+          "データの表現（2進数・10進数・16進数の変換、文字コード、画像・音声のデジタル化）",
+          "プログラミング基礎（Python等を用いた変数・条件分岐・ループ・関数定義）",
+          "アルゴリズムとデータ構造（探索アルゴリズム、ソート、シミュレーション）",
+          "データベースの基礎とデータ分析（表計算ソフトを活用した統計処理・モデル化）"
+        ]
+      }
     ];
 
     let currentDetailCode = "";
@@ -210,11 +370,11 @@
       const quizContainer = document.getElementById('quiz-subject-list');
       quizContainer.innerHTML = '';
 
-      // ロードマップ画面の構築
+      // ロードマップ画面の構築（アコーディオン式）
       const roadmapContainer = document.getElementById('roadmap-container');
       roadmapContainer.innerHTML = '';
 
-      subjects.forEach(sub => {
+      subjects.forEach((sub, index) => {
         // クイズカード
         let diffOptions = '<option value="all">すべての難易度</option>';
         for(let i=1; i<=20; i++) { diffOptions += `<option value="${i}">レベル ${i}</option>`; }
@@ -230,13 +390,22 @@
         `;
         quizContainer.appendChild(card);
 
-        // ロードマップカード
+        // ロードマップアコーディオンカード
         const rmCard = document.createElement('div');
         rmCard.className = 'roadmap-card';
         rmCard.style.borderLeft = `4px solid ${sub.color}`;
+
+        // 順番付きリストのHTMLを作成
+        const stepsHtml = sub.steps.map((step, sIdx) => `<li>${step}</li>`).join('');
+
         rmCard.innerHTML = `
-          <h4 style="color: ${sub.color};">${sub.name}</h4>
-          <p>${sub.scope}</p>
+          <div class="roadmap-header" onclick="toggleRoadmapBody(${index})">
+            <h4 style="color: ${sub.color};">${sub.name} <span style="font-size:0.85rem; color:var(--text-muted); font-weight:normal; margin-left:10px;">(全 ${sub.steps.length} ステップ)</span></h4>
+            <span class="roadmap-toggle-icon" id="icon-${index}">▼ クリックして開く</span>
+          </div>
+          <div class="roadmap-body" id="body-${index}">
+            <ol>${stepsHtml}</ol>
+          </div>
         `;
         roadmapContainer.appendChild(rmCard);
       });
@@ -245,6 +414,19 @@
       let diffHtml = '<option value="all">すべての難易度 (レベル1〜20)</option>';
       for(let i=1; i<=20; i++) { diffHtml += `<option value="${i}">レベル ${i}</option>`; }
       diffFilter.innerHTML = diffHtml;
+    }
+
+    // ロードマップのアコーディオン開閉用関数
+    function toggleRoadmapBody(index) {
+      const body = document.getElementById(`body-${index}`);
+      const icon = document.getElementById(`icon-${index}`);
+      if (body.style.display === "block") {
+        body.style.display = "none";
+        icon.innerText = "▼ クリックして開く";
+      } else {
+        body.style.display = "block";
+        icon.innerText = "▲ 閉じる";
+      }
     }
 
     let currentQuizData = [];
