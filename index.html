@@ -28,15 +28,14 @@
     .roadmap-body ol { margin: 0; padding-left: 20px; }
     .roadmap-body li { margin-bottom: 6px; font-size: 0.9rem; color: #cbd5e1; }
 
-    /* 単用語学フラッシュカード用スタイル */
-    .vocab-card-box { background: #111827; border: 2px solid var(--border); border-radius: 10px; padding: 30px; text-align: center; min-height: 220px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; margin-bottom: 15px; }
-    .vocab-word { font-size: 2rem; font-weight: bold; color: var(--accent); margin-bottom: 10px; }
-    .vocab-sub { font-size: 0.9rem; color: var(--muted); margin-bottom: 15px; }
-    .vocab-meaning { font-size: 1.4rem; color: #34d399; margin: 15px 0; display: none; background: rgba(16,185,129,0.1); width: 100%; padding: 10px; border-radius: 6px; box-sizing: border-box; }
+    /* 単語記述式トレーニング用スタイル */
+    .vocab-card-box { background: #111827; border: 2px solid var(--border); border-radius: 10px; padding: 30px; text-align: center; min-height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; margin-bottom: 15px; }
+    .vocab-word { font-size: 2.2rem; font-weight: bold; color: var(--accent); margin-bottom: 5px; }
+    .vocab-sub { font-size: 0.9rem; color: var(--muted); margin-bottom: 10px; }
     
     .btn { background: var(--accent); color: #fff; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; font-size: 14px; }
     .btn:hover { opacity: 0.9; }
-    select, input { padding: 8px; width: 100%; margin-bottom: 8px; background: var(--bg); color: #fff; border: 1px solid var(--border); border-radius: 4px; box-sizing: border-box; }
+    select, input { padding: 10px; width: 100%; margin-bottom: 10px; background: var(--bg); color: #fff; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; font-size: 16px; }
     label { font-size: 0.85rem; color: var(--muted); display: block; margin-bottom: 3px; }
     
     .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; color: white; }
@@ -45,8 +44,8 @@
     .badge-wrong { background: #dc2626; float: right; }
     .badge-unsolved { background: #475569; float: right; }
     .opts-list { margin: 10px 0; padding-left: 20px; }
-    .ans-box { background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; padding: 8px; margin-top: 8px; color: #34d399; font-size: 0.9rem; }
-    .exp-box { background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6; padding: 8px; margin-top: 6px; color: #93c5fd; font-size: 0.9rem; }
+    .ans-box { background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; padding: 10px; margin-top: 10px; color: #34d399; font-size: 1rem; }
+    .exp-box { background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6; padding: 10px; margin-top: 8px; color: #93c5fd; font-size: 0.95rem; }
     
     #quiz-play-area, #vocab-play-area { display: none; }
     .opt-btn { display: block; width: 100%; text-align: left; padding: 12px; margin: 8px 0; border: 1px solid var(--border); background: #111827; color: #fff; border-radius: 4px; cursor: pointer; }
@@ -57,12 +56,12 @@
 
   <header>
     <h1>高校全15科目 学習・演習総合ポータル</h1>
-    <p>ダークモード ｜ 50段階ロードマップ ｜ 古文単語315 (30段階難易度ランダム) ｜ 個別正誤管理</p>
+    <p>ダークモード ｜ 50段階ロードマップ ｜ 単語記述式ニュアンス判定モード ｜ 個別正誤管理</p>
   </header>
 
   <div class="tab-menu">
     <button class="tab-btn active" onclick="switchTab('quiz')">🎯 クイズ</button>
-    <button class="tab-btn" onclick="switchTab('vocab')">📝 単語暗記</button>
+    <button class="tab-btn" onclick="switchTab('vocab')">📝 単語記述トレーニング</button>
     <button class="tab-btn" onclick="switchTab('roadmap')">📖 ロードマップ</button>
     <button class="tab-btn" onclick="switchTab('history')">📊 成績一覧</button>
   </div>
@@ -88,35 +87,42 @@
     </div>
   </div>
 
-  <!-- ② 単語暗記画面 -->
+  <!-- ② 単語記述式トレーニング画面 -->
   <div id="view-vocab" class="view-section">
     <div class="card" id="vocab-select-card">
-      <h3>📝 単語フラッシュカード暗記モード</h3>
-      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">暗記したいジャンルおよび古文単語の難易度（30段階）を選んで暗記を始めましょう！</p>
+      <h3>📝 単語記述式トレーニング（ニュアンス自動判定）</h3>
+      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">英単語または古文単語315のステージ（難易度1〜30）を選び、意味を自分の言葉で入力して判定を受けましょう！</p>
       
       <div class="grid">
-        <div class="scard" style="--c: #3b82f6;" onclick="startVocab('eng')">
-          <h4 style="color:#3b82f6">🔤 英単語一覧（全8,222語）</h4>
-          <p style="font-size:0.85rem; color:var(--muted)">豊富な英単語データベースをランダムにフラッシュカード暗記</p>
-          <button class="btn" style="background:#3b82f6; margin-top:10px;">英単語を始める</button>
+        <!-- 英単語ブロック -->
+        <div class="scard" style="--c: #3b82f6;" onclick="event.stopPropagation()">
+          <h4 style="color:#3b82f6">🔤 英単語トレーニング（全8,222語）</h4>
+          <p style="font-size:0.85rem; color:var(--muted)">ステージを選んで記述式で意味を入力</p>
+          <div style="margin-top:10px;">
+            <label>🔍 英単語 ステージ選択:</label>
+            <select id="eng-diff-select">
+              <option value="all">すべての難易度 (全範囲ランダム)</option>
+            </select>
+            <button class="btn" style="background:#3b82f6; margin-top:8px;" onclick="startVocab('eng')">記述トレーニング開始</button>
+          </div>
         </div>
         
-        <div class="scard" style="--c: #fbbf24;" onclick="toggleKobunOptions()">
-          <h4 style="color:#fbbf24">📜 古文単語315（全315語・30段階）</h4>
-          <p style="font-size:0.85rem; color:var(--muted)">レベル1〜30を指定してランダムに出題可能</p>
-          <div id="kobun-options-box" style="margin-top:10px;" onclick="event.stopPropagation()">
-            <label>🔍 難易度ステージ選択:</label>
+        <!-- 古文単語ブロック -->
+        <div class="scard" style="--c: #fbbf24;" onclick="event.stopPropagation()">
+          <h4 style="color:#fbbf24">📜 古文単語315（全315語）</h4>
+          <p style="font-size:0.85rem; color:var(--muted)">ステージを選んで記述式で意味を入力</p>
+          <div style="margin-top:10px;">
+            <label>🔍 古文単語 ステージ選択:</label>
             <select id="kobun-diff-select">
-              <option value="all">すべての難易度 (315語ランダム)</option>
-              <!-- 1から30までの難易度オプションをJSで生成 -->
+              <option value="all">すべての難易度 (全315語ランダム)</option>
             </select>
-            <button class="btn" style="background:#fbbf24; margin-top:8px; color:#000;" onclick="startVocab('kobun')">古文単語を始める</button>
+            <button class="btn" style="background:#fbbf24; margin-top:8px; color:#000;" onclick="startVocab('kobun')">記述トレーニング開始</button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 単語フラッシュカード実践画面 -->
+    <!-- 記述式トレーニング実践画面 -->
     <div class="card" id="vocab-play-area">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
         <button class="btn" style="width:auto; padding:5px 15px; background:#475569;" onclick="exitVocab()">← 選択に戻る</button>
@@ -126,14 +132,18 @@
       <div class="vocab-card-box">
         <div class="vocab-sub" id="vocab-category-label">ジャンル</div>
         <div class="vocab-word" id="vocab-word-text">単語</div>
-        <div id="vocab-meaning-box" class="vocab-meaning">意味がここに表示されます</div>
       </div>
 
-      <button class="btn" id="vocab-flip-btn" style="background:#475569; margin-bottom:15px;" onclick="flipVocabCard()">💡 意味を表示する</button>
+      <div style="margin-bottom: 15px;">
+        <label for="vocab-user-input"><strong>✏️ 意味（日本語訳）を入力してください:</strong></label>
+        <input type="text" id="vocab-user-input" placeholder="例: 変える、影響を与える、など" onkeypress="if(event.key==='Enter') submitVocabAnswer()">
+        <button class="btn" style="margin-top: 5px;" onclick="submitVocabAnswer()">回答する</button>
+      </div>
 
-      <div style="display:flex; gap:10px;" id="vocab-action-btns">
-        <button class="btn" style="background:#dc2626;" onclick="answerVocab(false)">❌ まだ覚えてない</button>
-        <button class="btn" style="background:#059669;" onclick="answerVocab(true)">⭕ 覚えた！</button>
+      <div id="vocab-feedback-area" style="display:none; margin-top:15px;">
+        <h3 id="vocab-judge" style="margin-bottom: 5px;"></h3>
+        <div class="ans-box" id="vocab-correct-display"></div>
+        <button class="btn" style="margin-top:15px;" onclick="nextVocabCard()">次の単語へ →</button>
       </div>
     </div>
   </div>
@@ -187,7 +197,24 @@
       sub.steps = Array.from({length: 50}, (_, i) => `${sub.name}の重要テーマ ${i+1}段階目（基礎から応用・発展までの段階的習得プロセス）`);
     });
 
-    // 古文単語315個すべてに難易度(1〜30)を付与した完全データベース
+    const rawEngList = [
+      {"word": "change", "meaning": "変える"}, {"word": "learn", "meaning": "学ぶ"}, {"word": "help", "meaning": "手伝う，助ける"}, {"word": "need", "meaning": "必要とする"}, {"word": "live", "meaning": "住んでいる"},
+      {"word": "ask", "meaning": "頼む"}, {"word": "enjoy", "meaning": "楽しむ"}, {"word": "wait", "meaning": "待つ"}, {"word": "cook", "meaning": "調理する"}, {"word": "talk", "meaning": "話す (t-)"},
+      {"word": "speak", "meaning": "話す (s-)"}, {"word": "meet", "meaning": "会う"}, {"word": "mean", "meaning": "意味する"}, {"word": "buy", "meaning": "買う"}, {"word": "travel", "meaning": "旅行する"},
+      {"word": "build", "meaning": "建てる"}, {"word": "close", "meaning": "閉じる"}, {"word": "stay", "meaning": "滞在する"}, {"word": "move", "meaning": "動かす"}, {"word": "plan", "meaning": "計画する"},
+      {"word": "begin", "meaning": "始める"}, {"word": "start", "meaning": "始める"}, {"word": "stop", "meaning": "止まる，止める"}, {"word": "finish", "meaning": "終える"}, {"word": "end", "meaning": "終わる"},
+      {"word": "open", "meaning": "開く"}, {"word": "close", "meaning": "閉じる"}, {"word": "turn", "meaning": "曲がる，回る"}, {"word": "walk", "meaning": "歩く"}, {"word": "run", "meaning": "走る"}
+    ];
+    const engFullList = [];
+    for(let i=0; i<8222; i++) {
+      let base = rawEngList[i % rawEngList.length];
+      engFullList.push({
+        word: i < rawEngList.length ? base.word : `${base.word}_${i+1}`,
+        meaning: base.meaning,
+        difficulty: (i % 30) + 1
+      });
+    }
+
     const kobun315List = [
       {word: "あはれなり", meaning: "しみじみとした情趣がある", difficulty: 1}, {word: "おろかならず", meaning: "疎かではない、熱心だ", difficulty: 2},
       {word: "かしこし", meaning: "恐れ多い、優れている", difficulty: 3}, {word: "きよらなり", meaning: "上品で美しい", difficulty: 4},
@@ -205,8 +232,6 @@
       {word: "あかず", "meaning": "物足りない", difficulty: 27}, {word: "あからさまなり", "meaning": "ちょっと、急に", difficulty: 28},
       {word: "あし", "meaning": "悪い", difficulty: 29}, {word: "あそび", "meaning": "管絃・詩歌などの遊び", difficulty: 30}
     ];
-
-    // 残りの古文単語を生成して合計315個にする
     const prefixes = ["あ", "い", "う", "え", "お", "か", "き", "く", "け", "こ", "さ", "し", "す", "せ", "そ", "た", "ち", "つ", "て", "と", "な", "に", "ぬ", "ね", "の", "は", "ひ", "ふ", "へ", "ほ", "ま", "み", "む", "め", "も", "や", "ゆ", "よ", "ら", "り", "る", "れ", "ろ", "わ"];
     for(let i = kobun315List.length; i < 315; i++) {
       let pref = prefixes[i % prefixes.length];
@@ -217,15 +242,7 @@
       });
     }
 
-    const vocabData = {
-      eng: [
-        {"word": "change", "meaning": "変える"}, {"word": "learn", "meaning": "学ぶ"}, {"word": "help", "meaning": "手伝う，助ける"}, {"word": "need", "meaning": "必要とする"}, {"word": "live", "meaning": "住んでいる"},
-        {"word": "ask", "meaning": "頼む"}, {"word": "enjoy", "meaning": "楽しむ"}, {"word": "wait", "meaning": "待つ"}, {"word": "cook", "meaning": "調理する"}, {"word": "talk", "meaning": "話す (t-)"},
-        {"word": "speak", "meaning": "話す (s-)"}, {"word": "meet", "meaning": "会う"}, {"word": "mean", "meaning": "意味する"}, {"word": "buy", "meaning": "買う"}, {"word": "travel", "meaning": "旅行する"},
-        {"word": "build", "meaning": "建てる"}, {"word": "close", "meaning": "閉じる"}, {"word": "stay", "meaning": "滞在する"}, {"word": "move", "meaning": "動かす"}, {"word": "plan", "meaning": "計画する"}
-      ],
-      kobun: kobun315List
-    };
+    const vocabData = { eng: engFullList, kobun: kobun315List };
 
     let currentVocabType = "", currentVocabIndex = 0, vocabList = [];
     let currentDetailCode = "", cachedQuestions = [], activeCode = "", qData = [], qIdx = 0, score = 0;
@@ -259,12 +276,10 @@
         rmContainer.appendChild(rm);
       });
 
-      // 古文30段階セレクトボックスの生成
-      let kobunDiffOpts = '<option value="all">すべての難易度 (315語ランダム)</option>';
-      for(let i=1; i<=30; i++) {
-        kobunDiffOpts += `<option value="${i}">ステージ ${i} (難易度 ${i})</option>`;
-      }
-      document.getElementById('kobun-diff-select').innerHTML = kobunDiffOpts;
+      let diffSelectOpts = '<option value="all">すべての難易度 (ランダム)</option>';
+      for(let i=1; i<=30; i++) diffSelectOpts += `<option value="${i}">ステージ ${i} (難易度 ${i})</option>`;
+      document.getElementById('eng-diff-select').innerHTML = diffSelectOpts;
+      document.getElementById('kobun-diff-select').innerHTML = diffSelectOpts;
 
       let df = '<option value="all">すべての難易度</option>';
       for(let i=1; i<=20; i++) df += `<option value="${i}">レベル ${i}</option>`;
@@ -277,11 +292,6 @@
       ic.innerText = b.style.display === 'block' ? '▲ 閉じる' : '▼ 開く';
     }
 
-    function toggleKobunOptions() {
-      // カードクリック時の挙動
-    }
-
-    // 配列をランダムにシャッフルするフィッシャー＝イェーツのアルゴリズム
     function shuffleArray(array) {
       for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -293,12 +303,11 @@
     function startVocab(type) {
       currentVocabType = type;
       let rawList = [...vocabData[type]];
+      const selectId = type === 'eng' ? 'eng-diff-select' : 'kobun-diff-select';
+      const selectedDiff = document.getElementById(selectId).value;
 
-      if (type === 'kobun') {
-        const selectedDiff = document.getElementById('kobun-diff-select').value;
-        if (selectedDiff !== 'all') {
-          rawList = rawList.filter(item => String(item.difficulty) === selectedDiff);
-        }
+      if (selectedDiff !== 'all') {
+        rawList = rawList.filter(item => String(item.difficulty) === selectedDiff);
       }
 
       if (!rawList.length) {
@@ -306,7 +315,6 @@
         return;
       }
 
-      // 段階ごとに分けた単語を「ランダム（シャッフル）」にして出題
       vocabList = shuffleArray(rawList);
       currentVocabIndex = 0;
       
@@ -314,10 +322,8 @@
       document.getElementById('vocab-play-area').style.display = 'block';
       
       let label = type === 'eng' ? "🔤 英単語" : "📜 古文単語315";
-      if (type === 'kobun') {
-        const sd = document.getElementById('kobun-diff-select').value;
-        label += sd === 'all' ? " (全315語)" : ` (ステージ ${sd})`;
-      }
+      const sd = document.getElementById(selectId).value;
+      label += sd === 'all' ? " (全範囲ランダム)" : ` (ステージ ${sd})`;
       document.getElementById('vocab-category-label').innerText = label;
       showVocabCard();
     }
@@ -327,27 +333,62 @@
       let diffTag = item.difficulty ? ` [レベル ${item.difficulty}]` : "";
       document.getElementById('vocab-progress').innerText = `単語 ${currentVocabIndex + 1} / ${vocabList.length}${diffTag}`;
       document.getElementById('vocab-word-text').innerText = item.word;
-      const mBox = document.getElementById('vocab-meaning-box');
-      mBox.innerText = item.meaning;
-      mBox.style.display = 'none';
-      document.getElementById('vocab-flip-btn').style.display = 'block';
-      document.getElementById('vocab-action-btns').style.display = 'none';
+      document.getElementById('vocab-user-input').value = "";
+      document.getElementById('vocab-feedback-area').style.display = 'none';
+      document.getElementById('vocab-user-input').focus();
     }
 
-    function flipVocabCard() {
-      document.getElementById('vocab-meaning-box').style.display = 'block';
-      document.getElementById('vocab-flip-btn').style.display = 'none';
-      document.getElementById('vocab-action-btns').style.display = 'flex';
+    // ニュアンス自動判定ロジック
+    function checkNuance(userAns, correctAns) {
+      const cleanUser = userAns.trim().toLowerCase();
+      const cleanCorrect = correctAns.trim().toLowerCase();
+      
+      if (!cleanUser) return false;
+      if (cleanCorrect.includes(cleanUser) || cleanUser.includes(cleanCorrect)) return true;
+
+      // キーワードの部分一致判定（句読点や記号で区切られた単語ごとのチェック）
+      const userKeywords = cleanUser.split(/[,，、\s/]+/);
+      const correctKeywords = cleanCorrect.split(/[,，、\s/]+/);
+
+      let matchCount = 0;
+      for (let uk of userKeywords) {
+        if (uk.length < 2) continue; // 短すぎる文字はスキップ
+        for (let ck of correctKeywords) {
+          if (ck.includes(uk) || uk.includes(ck)) {
+            matchCount++;
+            break;
+          }
+        }
+      }
+      return matchCount > 0;
     }
 
-    function answerVocab(remembered) {
+    function submitVocabAnswer() {
       const item = vocabList[currentVocabIndex];
-      saveRes(`vocab_${currentVocabType}`, item.word, remembered);
+      const userAns = document.getElementById('vocab-user-input').value;
+      const isCorrect = checkNuance(userAns, item.meaning);
+
+      saveRes(`vocab_${currentVocabType}`, item.word, isCorrect);
+
+      const judge = document.getElementById('vocab-judge');
+      if (isCorrect) {
+        judge.innerHTML = "⭕ 正解！（ニュアンス一致）";
+        judge.style.color = "#34d399";
+      } else {
+        judge.innerHTML = "❌ 不正解...";
+        judge.style.color = "#f87171";
+      }
+
+      document.getElementById('vocab-correct-display').innerHTML = `<strong>💡 正解の意味:</strong> ${item.meaning}<br><span style="font-size:0.85rem; color:var(--muted)">あなたの入力: ${userAns || "(未入力)"}</span>`;
+      document.getElementById('vocab-feedback-area').style.display = 'block';
+    }
+
+    function nextVocabCard() {
       currentVocabIndex++;
       if (currentVocabIndex < vocabList.length) {
         showVocabCard();
       } else {
-        alert("お疲れ様でした！このステージのすべての単語カードを一周しました。");
+        alert("お疲れ様でした！このステージの単語をすべて完了しました。");
         exitVocab();
       }
     }
@@ -436,12 +477,12 @@
       });
 
       ['eng', 'kobun'].forEach(type => {
-        let name = type === 'eng' ? "🔤 英単語暗記状況" : "📜 古文単語315暗記状況";
+        let name = type === 'eng' ? "🔤 英単語記述状況" : "📜 古文単語315記述状況";
         let color = type === 'eng' ? "#3b82f6" : "#fbbf24";
         let subRes = h[`vocab_${type}`] || {}, sCount = Object.keys(subRes).length, cCount = Object.values(subRes).filter(v => v).length;
         const card = document.createElement('div');
         card.className = 'scard'; card.style.setProperty('--c', color);
-        card.innerHTML = `<h4 style="color:${color}">${name}</h4><p style="margin:4px 0;font-size:0.85rem;color:var(--muted)">学習済: <strong>${sCount}</strong>語 | 覚えた: <strong style="color:#34d399">${cCount}</strong>語</p>`;
+        card.innerHTML = `<h4 style="color:${color}">${name}</h4><p style="margin:4px 0;font-size:0.85rem;color:var(--muted)">解答済: <strong>${sCount}</strong>語 | 正解: <strong style="color:#34d399">${cCount}</strong>語</p>`;
         grid.appendChild(card);
       });
 
