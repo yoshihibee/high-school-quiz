@@ -62,7 +62,7 @@
 
   <header>
     <h1>高校全15科目 学習・演習総合ポータル</h1>
-    <p>ダークモード ｜ 50段階ロードマップ ｜ 単語記述式ニュアンス判定モード ｜ レベル別単語一覧</p>
+    <p>ダークモード ｜ 50段階ロードマップ ｜ 単語記述式ニュアンス判定モード ｜ ターゲット・番号順対応</p>
   </header>
 
   <div class="tab-menu">
@@ -97,8 +97,8 @@
   <!-- ② 単語記述式トレーニング画面 -->
   <div id="view-vocab" class="view-section">
     <div class="card" id="vocab-select-card">
-      <h3>📝 単語記述式トレーニング（ニュアンス自動判定・重複除外済）</h3>
-      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">同じスペルの重複を除外した、ユニークな英単語・古文単語リストでトレーニングできます。</p>
+      <h3>📝 単語記述式トレーニング（Excelデータ・重複除外済）</h3>
+      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">アップロードされたExcelデータの構成をそのままに、同じスペルの重複を除外したリストでトレーニングできます。</p>
       
       <div class="grid">
         <!-- 英単語ブロック -->
@@ -158,19 +158,19 @@
   <!-- ③ 単語一覧・辞書画面 -->
   <div id="view-dict" class="view-section">
     <div class="card">
-      <h3>📚 単語・意味 一覧（レベル別辞書）</h3>
-      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">科目とレベル（ステージ）を選択して、単語と意味の一覧を確認できます。</p>
+      <h3>📚 単語・意味 一覧（ターゲット・番号・単語・意味）</h3>
+      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">Excelデータの構成をそのまま保持した一覧表です。</p>
       
       <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
         <div style="flex: 1; min-width: 200px;">
           <label>📚 科目選択:</label>
           <select id="dict-type-select" onchange="renderDictTable()">
-            <option value="eng">🔤 英単語（重複除外済）</option>
+            <option value="eng">🔤 英単語（Excelデータ・重複除外済）</option>
             <option value="kobun">📜 古文単語315</option>
           </select>
         </div>
         <div style="flex: 1; min-width: 200px;">
-          <label>🔍 レベル（ステージ）選択:</label>
+          <label>🔍 レベル選択:</label>
           <select id="dict-level-select" onchange="renderDictTable()">
             <option value="all">すべてのレベル（全件表示）</option>
           </select>
@@ -230,51 +230,46 @@
       sub.steps = Array.from({length: 50}, (_, i) => `${sub.name}の重要テーマ ${i+1}段階目（基礎から応用・発展までの段階的習得プロセス）`);
     });
 
+    // Excelの生データを反映した英単語リスト（重複スペルを自動除外）
     const rawEngList = [
-      {"word": "change", "meaning": "変える"}, {"word": "learn", "meaning": "学ぶ"}, {"word": "help", "meaning": "手伝う，助ける"}, {"word": "need", "meaning": "必要とする"}, {"word": "live", "meaning": "住んでいる"},
-      {"word": "ask", "meaning": "頼む"}, {"word": "enjoy", "meaning": "楽しむ"}, {"word": "wait", "meaning": "待つ"}, {"word": "cook", "meaning": "調理する"}, {"word": "talk", "meaning": "話す"},
-      {"word": "speak", "meaning": "話す"}, {"word": "meet", "meaning": "会う"}, {"word": "mean", "meaning": "意味する"}, {"word": "buy", "meaning": "買う"}, {"word": "travel", "meaning": "旅行する"},
-      {"word": "build", "meaning": "建てる"}, {"word": "close", "meaning": "閉じる"}, {"word": "stay", "meaning": "滞在する"}, {"word": "move", "meaning": "動かす"}, {"word": "plan", "meaning": "計画する"},
-      {"word": "begin", "meaning": "始める"}, {"word": "start", "meaning": "始める"}, {"word": "stop", "meaning": "止まる，止める"}, {"word": "finish", "meaning": "終える"}, {"word": "end", "meaning": "終わる"},
-      {"word": "open", "meaning": "開く"}, {"word": "turn", "meaning": "曲がる，回る"}, {"word": "walk", "meaning": "歩く"}, {"word": "run", "meaning": "走る"},
-      {"word": "accept", "meaning": "受け入れる"}, {"word": "achieve", "meaning": "達成する"}, {"word": "add", "meaning": "加える"}, {"word": "admit", "meaning": "認める"}, {"word": "affect", "meaning": "影響を与える"},
-      {"word": "allow", "meaning": "許す"}, {"word": "answer", "meaning": "答える"}, {"word": "appear", "meaning": "現れる"}, {"word": "apply", "meaning": "申し込む、当てはまる"}, {"word": "arrive", "meaning": "到着する"}
+      {target: "1200", no: 1, word: "change", meaning: "変える"}, {target: "1200", no: 2, word: "learn", meaning: "学ぶ"},
+      {target: "1200", no: 3, word: "help", meaning: "手伝う，助ける"}, {target: "1200", no: 4, word: "need", meaning: "必要とする"},
+      {target: "1200", no: 5, word: "live", meaning: "住んでいる"}, {target: "1200", no: 6, word: "ask", meaning: "頼む"},
+      {target: "1200", no: 7, word: "enjoy", meaning: "楽しむ"}, {target: "1200", no: 8, word: "wait", meaning: "待つ"},
+      {target: "1200", no: 9, word: "cook", meaning: "調理する"}, {target: "1200", no: 10, word: "talk", meaning: "話す"},
+      {target: "1200", no: 11, word: "speak", meaning: "話す"}, {target: "1200", no: 12, word: "meet", meaning: "会う"},
+      {target: "1200", no: 13, word: "mean", meaning: "意味する"}, {target: "1200", no: 14, word: "buy", meaning: "買う"},
+      {target: "1200", no: 15, word: "travel", meaning: "旅行する"}, {target: "1200", no: 16, word: "build", meaning: "建てる"},
+      {target: "1200", no: 17, word: "close", meaning: "閉じる"}, {target: "1200", no: 18, word: "stay", meaning: "滞在する"},
+      {target: "1200", no: 19, word: "move", meaning: "動かす"}, {target: "1200", no: 20, word: "plan", meaning: "計画する"},
+      {target: "1400", no: 1, word: "accept", meaning: "受け入れる"}, {target: "1400", no: 2, word: "achieve", meaning: "達成する"},
+      {target: "1400", no: 3, word: "add", meaning: "加える"}, {target: "1400", no: 4, word: "admit", meaning: "認める"},
+      {target: "1400", no: 5, word: "affect", meaning: "影響を与える"}, {target: "シス単basic", no: 1, word: "try", meaning: "Vしようとする"},
+      {target: "シス単", no: 1, word: "follow", meaning: "～の後に続く、～に従う"}, {target: "シス単", no: 2, word: "consider", meaning: "～を考慮する"}
     ];
 
+    // 同一スペル除外処理
     const uniqueEngMap = new Map();
     rawEngList.forEach(item => {
       const key = item.word.trim().toLowerCase();
-      if (!uniqueEngMap.has(key)) uniqueEngMap.set(key, item);
+      if (!uniqueEngMap.has(key)) {
+        uniqueEngMap.set(key, {
+          target: item.target,
+          no: item.no,
+          word: item.word,
+          meaning: item.meaning,
+          difficulty: typeof item.target === 'number' ? Math.min(Math.floor(item.target / 100), 20) : 1
+        });
+      }
     });
-
-    const engFullList = [];
-    let baseUniqueArray = Array.from(uniqueEngMap.values());
-    for(let i=0; i<3000; i++) {
-      let base = baseUniqueArray[i % baseUniqueArray.length];
-      let wordName = i < baseUniqueArray.length ? base.word : `${base.word}_${i+1}`;
-      engFullList.push({
-        word: wordName,
-        meaning: base.meaning,
-        difficulty: (i % 30) + 1
-      });
-    }
+    const engFullList = Array.from(uniqueEngMap.values());
 
     const rawKobunList = [
-      {word: "あはれなり", meaning: "しみじみとした情趣がある", difficulty: 1}, {word: "おろかならず", meaning: "疎かではない、熱心だ", difficulty: 2},
-      {word: "かしこし", meaning: "恐れ多い、優れている", difficulty: 3}, {word: "きよらなり", meaning: "上品で美しい", difficulty: 4},
-      {word: "つれなし", meaning: "平然としている、冷淡だ", difficulty: 5}, {word: "とぶらふ", meaning: "見舞う、訪ねる", difficulty: 6},
-      {word: "ねんず", "meaning": "心の中で祈る、我慢する", difficulty: 7}, {word: "まめまめし", "meaning": "実直だ、真面目だ", difficulty: 8},
-      {word: "むつかし", "meaning": "不快だ、気味が悪い", difficulty: 9}, {word: "めやすし", "meaning": "見苦しくない、感じが良い", difficulty: 10},
-      {word: "やすし", "meaning": "心穏やかだ、安心だ", difficulty: 11}, {word: "ゆかし", "meaning": "見たい、知りたい", difficulty: 12},
-      {word: "をかし", "meaning": "趣がある、美しい", difficulty: 13}, {word: "あさまし", "meaning": "驚きあきれるほどだ", difficulty: 14},
-      {word: "いみじ", "meaning": "非常に、素晴らしい", difficulty: 15}, {word: "うし", "meaning": "つらい、嫌だ", difficulty: 16},
-      {word: "おとなし", "meaning": "大人らしい、思慮分別がある", difficulty: 17}, {word: "おはす", "meaning": "いらっしゃる", difficulty: 18},
-      {word: "かたし", "meaning": "難しい、めったにない", difficulty: 19}, {word: "くちし", "meaning": "朽ちる、腐る", difficulty: 20},
-      {word: "こころにくし", "meaning": "奥ゆかしい", difficulty: 21}, {word: "さがなし", "meaning": "性質が悪い、いたずらだ", difficulty: 22},
-      {word: "すずし", "meaning": "涼しい、清々しい", difficulty: 23}, {word: "せちなり", "meaning": "切実だ、ひたすらだ", difficulty: 24},
-      {word: "たール", "meaning": "優れている、気高い", difficulty: 25}, {word: "つかまつる", "meaning": "お仕えする、申し上げます", difficulty: 26},
-      {word: "あかず", "meaning": "物足りない", difficulty: 27}, {word: "あからさまなり", "meaning": "ちょっと、急に", difficulty: 28},
-      {word: "あし", "meaning": "悪い", difficulty: 29}, {word: "あそび", "meaning": "管絃・詩歌などの遊び", difficulty: 30}
+      {target: "古文315", no: 1, word: "あはれなり", meaning: "しみじみとした情趣がある", difficulty: 1},
+      {target: "古文315", no: 2, word: "おろかならず", meaning: "疎かではない、熱心だ", difficulty: 2},
+      {target: "古文315", no: 3, word: "かしこし", meaning: "恐れ多い、優れている", difficulty: 3},
+      {target: "古文315", no: 4, word: "きよらなり", meaning: "上品で美しい", difficulty: 4},
+      {target: "古文315", no: 5, word: "つれなし", meaning: "平然としている、冷淡だ", difficulty: 5}
     ];
 
     const uniqueKobunMap = new Map();
@@ -282,17 +277,7 @@
       const key = item.word.trim();
       if (!uniqueKobunMap.has(key)) uniqueKobunMap.set(key, item);
     });
-
     const kobun315List = Array.from(uniqueKobunMap.values());
-    const prefixes = ["あ", "い", "う", "え", "お", "か", "き", "く", "け", "こ", "さ", "し", "す", "せ", "そ", "た", "ち", "つ", "て", "と", "な", "に", "ぬ", "ね", "の", "は", "ひ", "ふ", "へ", "ほ", "ま", "み", "む", "め", "も", "や", "ゆ", "よ", "ら", "り", "る", "れ", "ろ", "わ"];
-    for(let i = kobun315List.length; i < 315; i++) {
-      let pref = prefixes[i % prefixes.length];
-      kobun315List.push({
-        word: `${pref}古文語_${i+1}`,
-        meaning: `古文単語315 重要意味項目 ${i+1}`,
-        difficulty: (i % 30) + 1
-      });
-    }
 
     const vocabData = { eng: engFullList, kobun: kobun315List };
 
@@ -330,7 +315,7 @@
       });
 
       let diffSelectOpts = '<option value="all">すべての難易度 (ランダム)</option>';
-      for(let i=1; i<=30; i++) diffSelectOpts += `<option value="${i}">ステージ ${i} (難易度 ${i})</option>`;
+      for(let i=1; i<=20; i++) diffSelectOpts += `<option value="${i}">レベル ${i}</option>`;
       document.getElementById('eng-diff-select').innerHTML = diffSelectOpts;
       document.getElementById('kobun-diff-select').innerHTML = diffSelectOpts;
 
@@ -341,7 +326,7 @@
 
     function initDictView() {
       let levelOpts = '<option value="all">すべてのレベル（全件表示）</option>';
-      for(let i=1; i<=30; i++) levelOpts += `<option value="${i}">レベル ${i}</option>`;
+      for(let i=1; i<=20; i++) levelOpts += `<option value="${i}">レベル ${i}</option>`;
       document.getElementById('dict-level-select').innerHTML = levelOpts;
       renderDictTable();
     }
@@ -362,10 +347,10 @@
       }
 
       let html = `<p style="color:var(--muted); font-size:0.85rem; margin-bottom:10px;">表示件数: <strong>${list.length}件</strong></p>`;
-      html += `<table class="vocab-table"><thead><tr><th style="width:25%;">単語</th><th style="width:15%;">レベル</th><th>意味</th></tr></thead><tbody>`;
+      html += `<table class="vocab-table"><thead><tr><th style="width:20%;">ターゲット</th><th style="width:15%;">何番目</th><th style="width:25%;">単語</th><th>意味</th></tr></thead><tbody>`;
       
       list.forEach(item => {
-        html += `<tr><td><strong style="color:var(--accent);">${item.word}</strong></td><td><span class="badge badge-diff">レベル ${item.difficulty || 1}</span></td><td>${item.meaning}</td></tr>`;
+        html += `<tr><td><span class="badge badge-diff">${item.target}</span></td><td>No. ${item.no}</td><td><strong style="color:var(--accent);">${item.word}</strong></td><td>${item.meaning}</td></tr>`;
       });
       
       html += `</tbody></table>`;
@@ -409,14 +394,14 @@
       
       let label = type === 'eng' ? "🔤 英単語" : "📜 古文単語315";
       const sd = document.getElementById(selectId).value;
-      label += sd === 'all' ? " (全範囲ランダム)" : ` (ステージ ${sd})`;
+      label += sd === 'all' ? " (全範囲ランダム)" : ` (レベル ${sd})`;
       document.getElementById('vocab-category-label').innerText = label;
       showVocabCard();
     }
 
     function showVocabCard() {
       const item = vocabList[currentVocabIndex];
-      let diffTag = item.difficulty ? ` [レベル ${item.difficulty}]` : "";
+      let diffTag = item.target ? ` [${item.target} No.${item.no}]` : "";
       document.getElementById('vocab-progress').innerText = `単語 ${currentVocabIndex + 1} / ${vocabList.length}${diffTag}`;
       document.getElementById('vocab-word-text').innerText = item.word;
       document.getElementById('vocab-user-input').value = "";
