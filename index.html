@@ -248,7 +248,20 @@
 
     const vocabData = { eng: [], kobun: [] };
 
-    // 古文単語315データ（difficultyを1〜11にマッピング）
+    // 英単語データ（直接内蔵型）
+    const rawEngList = [
+      {target: "1200", no: 1, word: "change", meaning: "変える、変化する", difficulty: 1},
+      {target: "1200", no: 2, word: "learn", meaning: "学ぶ、習得する", difficulty: 1},
+      {target: "1200", no: 3, word: "help", meaning: "助ける、手伝う", difficulty: 1},
+      {target: "1200", no: 4, word: "environment", meaning: "環境", difficulty: 4},
+      {target: "1200", no: 5, word: "global", meaning: "地球規模の、世界的な", difficulty: 6},
+      {target: "1200", no: 6, word: "significant", meaning: "重要な、意味のある", difficulty: 8},
+      {target: "1200", no: 7, word: "establish", meaning: "確立する、設立する", difficulty: 9},
+      {target: "1200", no: 8, word: "subsequent", meaning: "その後の、引き続いての", difficulty: 11}
+    ];
+    vocabData.eng = rawEngList;
+
+    // 古文単語315データ
     const rawKobunList = [
       {target: "古文315", no: 1, word: "あはれなり", meaning: "しみじみとした情趣がある", difficulty: 1},
       {target: "古文315", no: 2, word: "おろかならず", meaning: "疎かではない、熱心だ", difficulty: 2},
@@ -262,32 +275,7 @@
       {target: "古文315", no: 10, word: "めやすし", meaning: "見苦しくない、感じが良い", difficulty: 10},
       {target: "古文315", no: 11, word: "いみじ", meaning: "非常に、すばらしい、ひどい", difficulty: 11}
     ];
-    const uniqueKobunMap = new Map();
-    rawKobunList.forEach(item => {
-      const key = item.word.trim();
-      if (!uniqueKobunMap.has(key)) uniqueKobunMap.set(key, item);
-    });
-    vocabData.kobun = Array.from(uniqueKobunMap.values());
-
-    async function loadVocabData() {
-      try {
-        const res = await fetch('db_eng_vocab.json');
-        if (res.ok) {
-          vocabData.eng = await res.json();
-          // もしJSONデータのdifficultyが1〜11に収まっていない場合のフォールバック補正
-          vocabData.eng.forEach(item => {
-            if (!item.difficulty || item.difficulty < 1) item.difficulty = 1;
-            if (item.difficulty > 11) item.difficulty = ((item.difficulty - 1) % 11) + 1;
-          });
-        } else {
-          vocabData.eng = [{target: "1200", no: 1, word: "change", meaning: "変える", difficulty: 1}];
-        }
-      } catch (e) {
-        console.error("英単語データの読み込みに失敗しました", e);
-        vocabData.eng = [{target: "1200", no: 1, word: "change", meaning: "変える", difficulty: 1}];
-      }
-      initDictView();
-    }
+    vocabData.kobun = rawKobunList;
 
     let currentVocabType = "", currentVocabIndex = 0, vocabList = [];
     let currentDetailCode = "", cachedQuestions = [], activeCode = "", qData = [], qIdx = 0, score = 0;
@@ -322,7 +310,6 @@
         rmContainer.appendChild(rm);
       });
 
-      // 11段階セレクトボックスの生成
       let levelSelectOpts = '<option value="all">すべてのレベル (全範囲ランダム)</option>';
       for(let i=1; i<=11; i++) {
         levelSelectOpts += `<option value="${i}">レベル ${i}: ${levelNames11[i]}</option>`;
@@ -334,7 +321,7 @@
       for(let i=1; i<=11; i++) df += `<option value="${i}">レベル ${i}: ${levelNames11[i]}</option>`;
       document.getElementById('detail-diff-filter').innerHTML = df;
 
-      loadVocabData();
+      initDictView();
     }
 
     function initDictView() {
@@ -364,7 +351,7 @@
       let html = `<p style="color:var(--muted); font-size:0.85rem; margin-bottom:10px;">表示件数: <strong>${list.length}件</strong></p>`;
       html += `<table class="vocab-table"><thead><tr><th style="width:25%;">レベル</th><th style="width:15%;">何番目</th><th style="width:25%;">単語</th><th>意味</th></tr></thead><tbody>`;
       
-      list.slice(0, 1000).forEach(item => {
+      list.forEach(item => {
         let diffName = levelNames11[item.difficulty] || `レベル ${item.difficulty}`;
         html += `<tr><td><span class="badge badge-diff">${diffName}</span></td><td>No. ${item.no}</td><td><strong style="color:var(--accent);">${item.word}</strong></td><td>${item.meaning}</td></tr>`;
       });
@@ -432,11 +419,9 @@
       inputField.focus();
     }
 
-    // ひらがな・カタカナ正規化関数（ひらがなだけでも正解できるようにする）
     function hiraganaNormalize(text) {
       if (!text) return "";
-      // カタカナをひらがなに変換
-      let hira = text.replace(/[\u30a1-\u30f6]/s, match => String.fromCharCode(match.charCodeAt(0) - 0x60));
+      let hira = text.replace(/[\u30a1-\u30f6]/g, match => String.fromCharCode(match.charCodeAt(0) - 0x60));
       return hira.trim().toLowerCase();
     }
 
@@ -467,7 +452,6 @@
       const inputField = document.getElementById('vocab-user-input');
       const submitBtn = document.getElementById('vocab-submit-btn');
       
-      // 【回答変更不可の仕様】ボタンを押した瞬間にテキストボックスとボタンを無効化（ロック）する
       inputField.disabled = true;
       submitBtn.disabled = true;
       submitBtn.innerText = "回答確定（変更不可）";
@@ -506,20 +490,29 @@
       document.getElementById('vocab-select-card').style.display = 'block';
     }
 
-    async function startQuiz(code) {
+    // クイズ用サンプルデータ（各科目用）
+    const sampleQuizData = {
+      "math1": [
+        { id: 1, difficulty: 1, q: "2次関数 y = x^2 の頂点の座標は？", opts: ["(0, 0)", "(1, 1)", "(2, 4)", "(0, 1)"], a: 0, exp: "原点が頂点になります。" }
+      ]
+    };
+
+    function startQuiz(code) {
       activeCode = code;
       const diff = document.getElementById(`diff-${code}`).value;
-      try {
-        const res = await fetch(`db_${code}.json`);
-        if (!res.ok) { alert("問題データがまだありません。"); return; }
-        const all = await res.json();
-        qData = diff === 'all' ? [...all] : all.filter(q => String(q.difficulty) === diff);
-        if (!qData.length) { alert("該当レベルの問題がありません。"); return; }
-        qIdx = 0; score = 0;
-        document.getElementById('quiz-select-card').style.display = 'none';
-        document.getElementById('quiz-play-area').style.display = 'block';
-        showQ();
-      } catch { alert("データ読み込みエラー"); }
+      
+      // サンプルデータ、またはローカルのデータを使用
+      const all = sampleQuizData[code] || [
+        { id: 1, difficulty: Number(diff) || 1, q: `${code} のサンプル問題です。正しいものはどれ？`, opts: ["選択肢1", "選択肢2", "選択肢3", "選択肢4"], a: 0, exp: "これはサンプル解説です。" }
+      ];
+      
+      qData = diff === 'all' ? [...all] : all.filter(q => String(q.difficulty) === diff);
+      if (!qData.length) { qData = [...all]; } // フォールバック
+      
+      qIdx = 0; score = 0;
+      document.getElementById('quiz-select-card').style.display = 'none';
+      document.getElementById('quiz-play-area').style.display = 'block';
+      showQ();
     }
 
     function showQ() {
@@ -568,7 +561,7 @@
       localStorage.setItem('quiz_results', JSON.stringify(h));
     }
 
-    async function loadHistory() {
+    function loadHistory() {
       document.getElementById('history-main-view').style.display = 'block';
       document.getElementById('history-detail-view').style.display = 'none';
       let h = JSON.parse(localStorage.getItem('quiz_results') || '{}'), totS = 0, totC = 0;
@@ -599,23 +592,18 @@
       document.getElementById('overall-summary-box').innerHTML = `<p>クイズ総解答数: <strong>${totS}問</strong> ｜ クイズ全体正答率: <strong style="color:var(--accent)">${tRate}%</strong></p>`;
     }
 
-    async function openDetail(code, name) {
+    function openDetail(code, name) {
       currentDetailCode = code;
       document.getElementById('detail-subject-title').innerText = `${name} - 詳細`;
       document.getElementById('history-main-view').style.display = 'none';
       document.getElementById('history-detail-view').style.display = 'block';
       document.getElementById('detail-diff-filter').value = 'all';
-      const c = document.getElementById('detail-questions-container'); c.innerHTML = "読み込み中...";
-      try {
-        const res = await fetch(`db_${code}.json`);
-        if (!res.ok) { c.innerHTML = "データがありません。"; return; }
-        cachedQuestions = await res.json();
-        renderDetailQ();
-      } catch { c.innerHTML = "読み込みエラー"; }
+      renderDetailQ();
     }
 
     function renderDetailQ() {
       const f = document.getElementById('detail-diff-filter').value, c = document.getElementById('detail-questions-container');
+      cachedQuestions = sampleQuizData[currentDetailCode] || [{ id: 1, difficulty: 1, q: "サンプル問題", opts: ["選択肢1", "選択肢2"], a: 0, exp: "解説" }];
       let data = f === 'all' ? cachedQuestions : cachedQuestions.filter(q => String(q.difficulty) === f);
       if (!data.length) { c.innerHTML = "該当する問題はありません。"; return; }
       let h = JSON.parse(localStorage.getItem('quiz_results') || '{}')[currentDetailCode] || {};
