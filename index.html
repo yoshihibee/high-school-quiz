@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>高校全15科目 学習・演習総合ポータル（Excel完全対応版）</title>
+  <title>高校全15科目 学習・演習総合ポータル（完全版）</title>
   <!-- Excel読み込み用のライブラリ (SheetJS) -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
@@ -57,27 +57,32 @@
     .vocab-table tr:hover { background: rgba(255,255,255,0.02); }
     
     .upload-box { background: #0b0f19; border: 2px dashed var(--border); padding: 15px; border-radius: 6px; margin-top: 15px; text-align: center; }
+    
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+    .stat-box { background: #111827; border: 1px solid var(--border); padding: 15px; border-radius: 8px; text-align: center; }
+    .stat-num { font-size: 1.8rem; font-weight: bold; color: var(--accent); margin-top: 5px; }
   </style>
 </head>
 <body>
 
   <header>
     <h1>高校全15科目 学習・演習総合ポータル</h1>
-    <p>Excel「ターゲット・番号・単語・意味」完全対応 ｜ 11段階難易度AI判定</p>
+    <p>Excel「ターゲット・番号・単語・意味」完全対応 ｜ 成績管理・科目別ロードマップ搭載</p>
   </header>
 
   <div class="tab-menu">
     <button class="tab-btn active" onclick="switchTab('quiz')">🎯 クイズ</button>
     <button class="tab-btn" onclick="switchTab('vocab')">📝 単語記述トレーニング</button>
     <button class="tab-btn" onclick="switchTab('dict')">📚 単語一覧・Excel読込</button>
-    <button class="tab-btn" onclick="switchTab('roadmap')">📖 ロードマップ</button>
-    <button class="tab-btn" onclick="switchTab('history')">📊 成績一覧</button>
+    <button class="tab-btn" onclick="switchTab('roadmap')">📖 科目別ロードマップ</button>
+    <button class="tab-btn" onclick="switchTab('history')">📊 成績・学習状況</button>
   </div>
 
   <!-- ① クイズ画面 -->
   <div id="view-quiz" class="view-section active">
     <div class="card" id="quiz-select-card">
       <h3>🎯 科目・難易度を選択してクイズ挑戦</h3>
+      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">15科目それぞれのレベルに合わせたクイズを解くことで、成績データに自動で記録されます。</p>
       <div class="grid" id="quiz-subject-list"></div>
     </div>
     <div class="card" id="quiz-play-area">
@@ -99,7 +104,7 @@
   <div id="view-vocab" class="view-section">
     <div class="card" id="vocab-select-card">
       <h3>📝 英単語 記述式トレーニング（11段階レベル対応）</h3>
-      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">レベルまたは単語帳ターゲットを選んで記述式で意味を入力してください。</p>
+      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">レベルを選択し、記述式で意味を入力してください。正解数は成績に記録されます。</p>
       
       <div class="grid">
         <div class="scard" style="--c: #3b82f6;" onclick="event.stopPropagation()">
@@ -141,10 +146,9 @@
       <h3>📚 単語一覧 & Excel一括インポート</h3>
       <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">お持ちのExcelファイル（列構成: <code>ターゲット</code>, <code>番号</code>, <code>単語</code>, <code>意味</code>）をアップロードすると、AIが自動で11段階のレベルを判定して全データを登録します。</p>
       
-      <!-- Excelインポート用ボックス -->
       <div class="upload-box">
         <label style="font-weight:bold; color:var(--text); margin-bottom:8px;">📁 Excelファイル（.xlsx / .xls / .csv）を一括読み込み</label>
-        <p style="font-size:0.8rem; color:var(--muted); margin-bottom:8px;">※ 1行目にヘッダー（ターゲット、番号、単語、意味）があるファイルをそのままドロップしてください。</p>
+        <p style="font-size:0.8rem; color:var(--muted); margin-bottom:8px;">※ 1行目にヘッダーがあるファイルをそのままドロップしてください。</p>
         <input type="file" id="excel-file-input" accept=".xlsx, .xls, .csv" style="max-width:350px; margin:0 auto;" onchange="handleExcelUpload(event)">
       </div>
 
@@ -171,13 +175,18 @@
   <div id="view-roadmap" class="view-section">
     <div class="card">
       <h3>📖 高校全15科目 50段階学習ステップロードマップ</h3>
+      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">科目ごとのアコーディオンを開くと、基礎から発展までの具体的な50段階テーマを確認できます。</p>
       <div id="roadmap-container"></div>
     </div>
   </div>
 
   <!-- ⑤ 成績一覧画面 -->
   <div id="view-history" class="view-section">
-    <div class="card"><h3>📊 総合学習・登録単語サマリー</h3><div id="overall-summary-box"></div></div>
+    <div class="card">
+      <h3>📊 総合学習・成績ダッシュボード</h3>
+      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:20px;">これまでのクイズ挑戦結果や単語トレーニングの正解数、登録単語の統計データを確認できます。</p>
+      <div id="overall-summary-box"></div>
+    </div>
   </div>
 
   <script>
@@ -189,39 +198,75 @@
     };
 
     const subjects = [
-      { code: "eng_read", name: "英語リーディング", color: "#3b82f6" },
-      { code: "eng_listen", name: "英語リスニング", color: "#60a5fa" },
-      { code: "math1", name: "数学I", color: "#10b981" },
-      { code: "math_a", name: "数学A", color: "#34d399" },
-      { code: "math2", name: "数学Ⅱ", color: "#059669" },
-      { code: "math_b", name: "数学B", color: "#047857" },
-      { code: "math_c", name: "数学C", color: "#6ee7b7" },
-      { code: "kokugo_gen", name: "現代文", color: "#f59e0b" },
-      { code: "kokugo_ko", name: "古文", color: "#fbbf24" },
-      { code: "kokugo_kan", name: "漢文", color: "#d97706" },
-      { code: "chem_base", name: "化学基礎", color: "#8b5cf6" },
-      { code: "earth_base", name: "地学基礎", color: "#a78bfa" },
-      { code: "geo_tankyu", name: "地理総合探究", color: "#ec4899" },
-      { code: "seikei", name: "公共政治経済", color: "#f43f5e" },
-      { code: "info1", name: "情報I", color: "#06b6d4" }
+      { 
+        code: "eng_read", name: "英語リーディング", color: "#3b82f6",
+        steps: [
+          "1. 5文型の基礎（SV, SVO, SVC）", "2. 修飾語句（M）の識別と基本構造", "3. 名詞の働きと代名詞の格変化", "4. 動詞の活用と時制（現在・過去・未来）",
+          "5. 進行形と完了形のイメージ", "6. 受動態の基本と応用（BY以外の前置詞）", "7. 不定詞の名詞的・形容詞的・副詞的用法", "8. 動名詞の働きと不定詞との使い分け",
+          "9. 分詞の形容詞的用法と分詞構文", "10. 関係代名詞（who, which, that）の基本", "11. 関係副詞と複合関係詞", "12. 比較の基本（原級・比較級・最上級）",
+          "13. 比較を用いた重要構文（倍数表現など）", "14. 仮定法過去と仮定法過去完了", "15. I wish / as if などの重要仮定法構文", "16. 助動詞のニュアンスと完了形",
+          "17. 接続詞（and, but, because, ifなど）の構造", "18. 前置詞のコアイメージと熟語", "19. 否定表現（部分否定・全否定・倒置）", "20. 強調・省略・挿入の構文把握",
+          "21. 共通テスト形式：長文速読のコツ", "22. 指示語・代名詞が指す内容の特定", "23. 段落の要旨を把握するパラグラフ・リーディング", "24. 空欄補充問題の論理的アプローチ",
+          "25. 内容一致・真偽判定問題の解法テクニック", "26. 語源（接頭辞・語根・接尾辞）からの単語推測", "27. 抽象度の高い論説文の読みこみ", "28. 物語・小説文の心情・状況把握",
+          "29. グラフ・資料付き長文の読み取り方", "30. メール・広告文などの実用英語の読解", "31. 速読力を高めるスラッシュリーディング", "32. 構造把握が難しい複雑な複文の解析",
+          "33. 国公立大の記述式和訳のポイント", "34. 自由英作文につながる英文のインプット", "35. 難関大の現代思想系長文対策", "36. 科学・技術系論文スタイルの長文読解",
+          "37. 歴史・文化系エッセイの読解演習", "38. ディベート・論争形式の長文分析", "39. 接続詞を手がかりにした論理展開の追跡", "40. 段落の順序整序問題の解き方",
+          "41. 見出し選択・タイトル推測問題のコツ", "42. センター・共通テスト過去問 徹底演習", "43. 中堅私大レベルの長文読解総合", "44. 難関私大レベルの多義語・文脈把握",
+          "45. 旧帝大レベルの長文要約トレーニング", "46. 制限時間を意識したスピード模試演習", "47. 過去問演習：正答率を上げる見直しテクニック", "48. ケアレスミスを防ぐ精読と速読のバランス", "49. 総合長文における得点最大化戦略", "50. 英語リーディング総仕上げ・ファイナルテスト"
+        ]
+      },
+      { code: "eng_listen", name: "英語リスニング", color: "#60a5fa", steps: Array.from({length: 50}, (_, i) => `英語リスニング 第${i+1}ステップ（音声知覚・自動化・シャドーイング・設問先読み訓練）`) },
+      { 
+        code: "math1", name: "数学I", color: "#10b981",
+        steps: [
+          "1. 式の展開と因数分解（公式の確実な運用）", "2. 対称式・交代式の値の計算", "3. 実数と絶対値の性質・根号の計算", "4. 1次不等式と数直線による解法", "5. 集合の要素の個数とド・モルガンの法則", "6. 命題と条件（必要条件・十分条件・裏・逆・対偶）",
+          "7. 背理法と数学的証明の記述", "8. 関数とグラフの基本（定義域と値域）", "9. 2次関数のグラフ（平行移動と対称移動）", "10. 2次関数の最大・最小（基本形と頂点）",
+          "11. 2次関数の最大・最小（変域に文字を含む場合）", "12. 2次関数の最大・最小（2次式置き換え型）", "13. 2次方程式の解の公式と判別式D", "14. 2次関数のグラフとx軸の共有点（位置関係）", "15. 2次不等式の解法とグラフによる理解",
+          "16. 2次不等式が常に成り立つ条件（絶対不等式）", "17. 三角比の定義（sin, cos, tan）と相互関係", "18. 三角比の拡張（鈍角を含む値の計算）", "19. 正弦定理の基本と応用", "20. 余弦定理の基本と応用",
+          "21. 三角形の面積公式とヘロンの公式類似", "22. 空間図形への三角比の応用（立体切断など）", "23. データの整理（平均値・中央値・最頻値）", "24. データの分散と標準偏差の計算", "25. データの散布図と相関係数",
+          "26. 2次方程式の解と係数の関係（根の符号など）", "27. 2次方程式の解の存在範囲（配置問題・ロジック）", "28. 2次関数の決定（条件から式を求める）", "29. グラフの平行移動と反転の応用", "30. 最大・最小の応用問題（文章題）",
+          "31. 三角比の応用（測量問題・立体図形）", "32. データの分析（仮説検定の基礎・四分位数・箱ひげ図）", "33. 集合の応用（ベン図を用いた複雑な条件整理）", "34. 必要十分条件の発展問題（論理のミスを防ぐ）", "35. 不等式の証明（相加・相乗平均の利用）",
+          "36. 絶対不等式の証明テクニック（実数の平方の利用）", "37. 2次関数の応用：パラメータを含む最大最小", "38. 不定方程式の整数解（数学A融合の基礎）", "39. 共通テスト対策：数学I分野のマーク式スピード解答法", "40. 共通テスト対策：図形計量の実践問題",
+          "41. 記述式対策：論理的な答案の書き方（証明問題）", "42. 融合問題：関数と図形の融合", "43. 総合演習：基本・標準問題の定着確認", "44. 総合演習：応用・発展問題へのアプローチ", "45. 苦手分野克服：2次関数・方程式特訓",
+          "46. 苦手分野克服：三角比・図形特訓", "47. 実戦模試：制限時間内での得点最大化", "48. 過去問演習：頻出パターンの網羅", "49. 直前総整理：公式・解法の総チェック", "50. 数学I 総仕上げテスト"
+        ]
+      },
+      { code: "math_a", name: "数学A", color: "#34d399", steps: Array.from({length: 50}, (_, i) => `数学A 第${i+1}ステップ（場合の数・確率・整数・図形の性質）`) },
+      { code: "math2", name: "数学Ⅱ", color: "#059669", steps: Array.from({length: 50}, (_, i) => `数学Ⅱ 第${i+1}ステップ（式と証明・複素数・図形と方程式・三角関数・指数対数・微分積分）`) },
+      { code: "math_b", name: "数学B", color: "#047857", steps: Array.from({length: 50}, (_, i) => `数学B 第${i+1}ステップ（数列・統計的な推測）`) },
+      { code: "math_c", name: "数学C", color: "#6ee7b7", steps: Array.from({length: 50}, (_, i) => `数学C 第${i+1}ステップ（ベクトル・複素数平面・式と曲線）`) },
+      { code: "kokugo_gen", name: "現代文", color: "#f59e0b", steps: Array.from({length: 50}, (_, i) => `現代文 第${i+1}ステップ（論理的読解・キーワード分析・随筆・小説・記述対策）`) },
+      { code: "kokugo_ko", name: "古文", color: "#fbbf24", steps: Array.from({length: 50}, (_, i) => `古文 第${i+1}ステップ（古典文法・重要古文単語・和歌修辞・背景知識・読解演習）`) },
+      { code: "kokugo_kan", name: "漢文", color: "#d97706", steps: Array.from({length: 50}, (_, i) => `漢文 第${i+1}ステップ（句形・返り点・書き下し文・重要漢字・漢詩の規則）`) },
+      { code: "chem_base", name: "化学基礎", color: "#8b5cf6", steps: Array.from({length: 50}, (_, i) => `化学基礎 第${i+1}ステップ（物質の構成・原子構造・物質量mol・化学反応式・酸と塩基・中和滴定・酸化還元反応）`) },
+      { code: "earth_base", name: "地学基礎", color: "#a78bfa", steps: Array.from({length: 50}, (_, i) => `地学基礎 第${i+1}ステップ（地球の構造・プレートテクトニクス・気象と海洋・宇宙・太陽系・天体の観測）`) },
+      { code: "geo_tankyu", name: "地理総合探究", color: "#ec4899", steps: Array.from({length: 50}, (_, i) => `地理総合探究 第${i+1}ステップ（地図・GIS・地形・気候・資源エネルギー・人口・都市・産業・持続可能な開発）`) },
+      { code: "seikei", name: "公共政治経済", color: "#f43f5e", steps: Array.from({length: 50}, (_, i) => `公共政治経済 第${i+1}ステップ（民主主義・日本国憲法・人権・政治機構・経済体制・金融・国際経済・国際政治）`) },
+      { code: "info1", name: "情報I", color: "#06b6d4", steps: Array.from({length: 50}, (_, i) => `情報I 第${i+1}ステップ（情報社会・コミュニケーション・コンピュータの仕組み・プログラミング・アルゴリズム・データ活用・モデル化）`) }
     ];
 
-    subjects.forEach(sub => {
-      sub.steps = Array.from({length: 50}, (_, i) => `${sub.name}の重要テーマ ${i+1}段階目（基礎から応用まで）`);
-    });
-
-    // デフォルト単語データ（ローカルストレージからロード、なければサンプル）
+    // データストレージのロード
     let vocabData = JSON.parse(localStorage.getItem('excel_vocab_data_v2') || 'null') || [
       { target: "1200", no: 1, word: "change", meaning: "変える、変化する", difficulty: 1 },
       { target: "1200", no: 2, word: "learn", meaning: "学ぶ、習得する", difficulty: 1 },
       { target: "シス単", no: 1, word: "upright", meaning: "まっすぐに", difficulty: 8 }
     ];
 
-    function saveVocabStorage() {
+    // 成績データのロード
+    let userStats = JSON.parse(localStorage.getItem('user_stats_v2') || 'null') || {
+      quizPlayed: 0,
+      quizCorrect: 0,
+      vocabPlayed: 0,
+      vocabCorrect: 0,
+      subjectScores: {}
+    };
+
+    function saveStorage() {
       localStorage.setItem('excel_vocab_data_v2', JSON.stringify(vocabData));
+      localStorage.setItem('user_stats_v2', JSON.stringify(userStats));
     }
 
-    // AI風の単語レベル自動判定ロジック（ターゲット名、番号、文字数を総合解析）
+    // AI風難易度判定
     function aiEstimateDifficulty(target, no, word, meaning) {
       const tStr = String(target).toLowerCase();
       const num = Number(no) || 1;
@@ -235,13 +280,11 @@
       } else if (tStr.includes('1900') || tStr.includes('シス単')) {
         baseLevel = Math.min(11, Math.floor((num - 1) / 250) + 4);
       } else {
-        // 一般的な文字数・番号ベースのフォールバック
         baseLevel = Math.min(11, Math.max(1, Math.floor(len / 2) + (num % 3)));
       }
       return baseLevel;
     }
 
-    // Excelファイル読み込み処理（ターゲット、番号、単語、意味に対応）
     function handleExcelUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -256,15 +299,9 @@
           const jsonRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
           let newItems = [];
-          // ヘッダー行を探す、あるいはインデックスを特定
-          jsonRows.forEach((row, idx) => {
+          jsonRows.forEach((row) => {
             if (row && row.length >= 4) {
-              // ヘッダー文字列っぽいものはスキップ
-              const targetVal = row[0];
-              const noVal = row[1];
-              const wordVal = row[2];
-              const meaningVal = row[3];
-
+              const targetVal = row[0], noVal = row[1], wordVal = row[2], meaningVal = row[3];
               if (targetVal && wordVal && meaningVal && String(targetVal) !== 'ターゲット' && String(wordVal) !== '単語') {
                 const diff = aiEstimateDifficulty(targetVal, noVal, wordVal, meaningVal);
                 newItems.push({
@@ -279,24 +316,24 @@
           });
 
           if (newItems.length > 0) {
-            vocabData = newItems; // 完全置き換えまたは統合
-            saveVocabStorage();
+            vocabData = newItems;
+            saveStorage();
             initDictView();
-            alert(`✅ 成功！ ${newItems.length}件の単語データをExcelから正常に読み込みました。AIが自動で11段階レベルを割り当てました！`);
+            alert(`✅ 成功！ ${newItems.length}件の単語データをExcelから読み込みました！`);
           } else {
-            alert("⚠️ 有効なデータが見つかりませんでした。列の並びが「ターゲット」「番号」「単語」「意味」になっているか確認してください。");
+            alert("⚠️ 有効なデータが見つかりませんでした。列構成を確認してください。");
           }
           event.target.value = "";
         } catch (err) {
           console.error(err);
-          alert("❌ ファイルの読み込みに失敗しました。正しいExcel/CSV形式か確認してください。");
+          alert("❌ ファイルの読み込みに失敗しました。");
         }
       };
       reader.readAsArrayBuffer(file);
     }
 
     let currentVocabIndex = 0, vocabList = [];
-    let qData = [], qIdx = 0, score = 0;
+    let qData = [], qIdx = 0, score = 0, currentSubCode = "";
 
     function switchTab(name) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -317,11 +354,13 @@
       for(let i=1; i<=11; i++) diffOpts += `<option value="${i}">レベル ${i}: ${levelNames11[i]}</option>`;
 
       subjects.forEach((sub, idx) => {
+        // クイズ科目カード
         const card = document.createElement('div');
         card.className = 'scard'; card.style.setProperty('--c', sub.color);
         card.innerHTML = `<h4 style="color:${sub.color}">${sub.name}</h4><label>難易度:</label><select id="diff-${sub.code}" onclick="event.stopPropagation()">${diffOpts}</select><button class="btn" style="background:${sub.color}" onclick="event.stopPropagation();startQuiz('${sub.code}')">🎯 クイズ開始</button>`;
         qList.appendChild(card);
 
+        // ロードマップカード
         const rm = document.createElement('div');
         rm.className = 'roadmap-card'; rm.style.borderLeft = `4px solid ${sub.color}`;
         rm.innerHTML = `<div class="roadmap-header" onclick="toggleRm(${idx})"><h4 style="color:${sub.color}">${sub.name} <span style="font-size:0.8rem;color:var(--muted)">(全50ステップ)</span></h4><span id="icon-${idx}">▼ 開く</span></div><div class="roadmap-body" id="body-${idx}"><ol>${sub.steps.map(s => `<li>${s}</li>`).join('')}</ol></div>`;
@@ -336,7 +375,6 @@
     }
 
     function initDictView() {
-      // ターゲットのドロップダウン生成
       const targets = [...new Set(vocabData.map(item => item.target))];
       let targetOpts = '<option value="all">すべてのターゲット</option>';
       targets.forEach(t => { targetOpts += `<option value="${t}">${t}</option>`; });
@@ -354,33 +392,23 @@
       const selectedLevel = document.getElementById('dict-level-select').value;
       
       let list = vocabData;
-      if (selectedTarget !== 'all') {
-        list = list.filter(item => String(item.target) === selectedTarget);
-      }
-      if (selectedLevel !== 'all') {
-        list = list.filter(item => String(item.difficulty) === selectedLevel);
-      }
+      if (selectedTarget !== 'all') list = list.filter(item => String(item.target) === selectedTarget);
+      if (selectedLevel !== 'all') list = list.filter(item => String(item.difficulty) === selectedLevel);
 
       const container = document.getElementById('dict-container');
       if (!list.length) {
-        container.innerHTML = '<p style="color:var(--muted); margin-top:10px;">該当する単語がありません。上部からExcelファイルをアップロードしてください。</p>';
+        container.innerHTML = '<p style="color:var(--muted); margin-top:10px;">該当する単語がありません。</p>';
         return;
       }
 
       let html = `<p style="color:var(--muted); font-size:0.85rem; margin-bottom:10px;">表示件数: <strong>${list.length}件</strong></p>`;
       html += `<table class="vocab-table"><thead><tr><th style="width:15%;">ターゲット</th><th style="width:20%;">レベル</th><th style="width:10%;">No.</th><th style="width:25%;">単語</th><th>意味</th></tr></thead><tbody>`;
       
-      // 最大100件まで表示（動作軽量化のため）
-      const displayList = list.slice(0, 200);
-      displayList.forEach((item) => {
+      list.slice(0, 200).forEach((item) => {
         let diffName = levelNames11[item.difficulty] || `レベル ${item.difficulty}`;
         html += `<tr><td><span class="badge badge-target">${item.target}</span></td><td><span class="badge badge-diff">${diffName}</span></td><td>${item.no}</td><td><strong style="color:var(--accent);">${item.word}</strong></td><td>${item.meaning}</td></tr>`;
       });
-      
       html += `</tbody></table>`;
-      if (list.length > 200) {
-        html += `<p style="text-align:center; color:var(--muted); margin-top:10px;">※ 動作保護のため最初の200件を表示しています（総件数: ${list.length}件）</p>`;
-      }
       container.innerHTML = html;
     }
 
@@ -398,16 +426,14 @@
       return array;
     }
 
+    // --- 単語トレーニング関連 ---
     function startVocab() {
       let rawList = [...vocabData];
       const selectedDiff = document.getElementById('eng-diff-select').value;
-
-      if (selectedDiff !== 'all') {
-        rawList = rawList.filter(item => String(item.difficulty) === selectedDiff);
-      }
+      if (selectedDiff !== 'all') rawList = rawList.filter(item => String(item.difficulty) === selectedDiff);
 
       if (!rawList.length) {
-        alert("該当するレベルの単語がありません。Excelファイルをアップロードしてください。");
+        alert("該当するレベルの単語がありません。");
         return;
       }
 
@@ -466,6 +492,11 @@
       const userAns = inputField.value;
       const isCorrect = checkNuance(userAns, item.meaning);
 
+      // 成績の集計更新
+      userStats.vocabPlayed++;
+      if (isCorrect) userStats.vocabCorrect++;
+      saveStorage();
+
       const judge = document.getElementById('vocab-judge');
       if (isCorrect) {
         judge.innerHTML = "⭕ 正解！（ニュアンス判定クリア）";
@@ -494,15 +525,31 @@
       document.getElementById('vocab-select-card').style.display = 'block';
     }
 
+    // --- クイズ機能関連 ---
     const sampleQuizData = {
-      "math1": [{ id: 1, difficulty: 1, q: "2次関数 y = x^2 の頂点の座標は？", opts: ["(0, 0)", "(1, 1)", "(2, 4)", "(0, 1)"], a: 0, exp: "原点が頂点になります。" }]
+      "eng_read": [
+        { id: 1, difficulty: 1, q: "次の英文の空欄に入る最も適切なものは？：「She is a student, and I am a student (   ).」", opts: ["too", "either", "also", "as well as"], a: 0, exp: "肯定文の文末で「〜もまた」と言うときは too を使います。" },
+        { id: 2, difficulty: 3, q: "次のうち「成功する」を意味する単語はどれか？", opts: ["succeed", "success", "successful", "succession"], a: 0, exp: "succeed が動詞「成功する」です。" }
+      ],
+      "math1": [
+        { id: 1, difficulty: 1, q: "2次関数 y = x^2 の頂点の座標は？", opts: ["(0, 0)", "(1, 1)", "(2, 4)", "(0, 1)"], a: 0, exp: "原点が頂点になります。" }
+      ]
     };
 
     function startQuiz(code) {
+      currentSubCode = code;
       const diff = document.getElementById(`diff-${code}`).value;
-      const all = sampleQuizData[code] || [{ id: 1, difficulty: Number(diff) || 1, q: `${code} のサンプル問題です。`, opts: ["選択肢1", "選択肢2", "選択肢3", "選択肢4"], a: 0, exp: "解説" }];
+      const subObj = subjects.find(s => s.code === code);
+      const subName = subObj ? subObj.name : code;
+
+      const defaultQ = [
+        { id: 1, difficulty: Number(diff) || 1, q: `【${subName}】の基本問題：この科目の基礎知識として正しいものはどれか？`, opts: ["選択肢A（正解）", "選択肢B", "選択肢C", "選択肢D"], a: 0, exp: "基本の学習項目を確認する問題です。" }
+      ];
+
+      const all = sampleQuizData[code] || defaultQ;
       qData = diff === 'all' ? [...all] : all.filter(q => String(q.difficulty) === diff);
       if (!qData.length) qData = [...all];
+
       qIdx = 0; score = 0;
       document.getElementById('quiz-select-card').style.display = 'none';
       document.getElementById('quiz-play-area').style.display = 'block';
@@ -528,6 +575,18 @@
     function answerQ(idx) {
       const q = qData[qIdx], correct = idx === q.a;
       if (correct) score++;
+
+      // 成績更新
+      userStats.quizPlayed++;
+      if (correct) userStats.quizCorrect++;
+      
+      if (!userStats.subjectScores[currentSubCode]) {
+        userStats.subjectScores[currentSubCode] = { played: 0, correct: 0 };
+      }
+      userStats.subjectScores[currentSubCode].played++;
+      if (correct) userStats.subjectScores[currentSubCode].correct++;
+      saveStorage();
+
       const j = document.getElementById('quiz-judge');
       j.innerHTML = correct ? "⭕ 正解！" : `❌ 不正解... (正解: ${q.a+1}. ${q.opts[q.a]})`;
       j.style.color = correct ? "#34d399" : "#f87171";
@@ -547,18 +606,45 @@
       document.getElementById('quiz-select-card').style.display = 'block';
     }
 
+    // --- 成績一覧ダッシュボード ---
     function loadHistory() {
-      const targets = [...new Set(vocabData.map(item => item.target))];
-      let targetSummary = targets.map(t => {
-        let count = vocabData.filter(item => item.target === t).length;
-        return `<li><strong>${t}</strong>: ${count}語</li>`;
-      }).join('');
+      const vocabTotal = vocabData.length;
+      const vocabRate = userStats.vocabPlayed > 0 ? Math.round((userStats.vocabCorrect / userStats.vocabPlayed) * 100) : 0;
+      const quizRate = userStats.quizPlayed > 0 ? Math.round((userStats.quizCorrect / userStats.quizPlayed) * 100) : 0;
+
+      // 科目別成績の集計HTML作成
+      let subjectScoreHtml = '';
+      subjects.forEach(sub => {
+        const stat = userStats.subjectScores[sub.code] || { played: 0, correct: 0 };
+        const rate = stat.played > 0 ? Math.round((stat.correct / stat.played) * 100) : 0;
+        subjectScoreHtml += `
+          <div style="background:#111827; border:1px solid var(--border); padding:10px 15px; border-radius:6px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+            <div><strong style="color:${sub.color}">${sub.name}</strong></div>
+            <div style="color:var(--muted); font-size:0.9rem;">挑戦回数: <strong>${stat.played}回</strong> ｜ 正解率: <strong style="color:#34d399;">${rate}%</strong></div>
+          </div>
+        `;
+      });
 
       document.getElementById('overall-summary-box').innerHTML = `
-        <p>総登録単語数: <strong>${vocabData.length}語</strong></p>
-        <ul style="margin-top: 10px; padding-left: 20px; color: var(--muted);">
-          ${targetSummary}
-        </ul>
+        <div class="stats-grid">
+          <div class="stat-box">
+            <label>登録単語総数</label>
+            <div class="stat-num">${vocabTotal} 語</div>
+          </div>
+          <div class="stat-box">
+            <label>単語トレーニング正解率</label>
+            <div class="stat-num">${vocabRate}% <span style="font-size:0.9rem; color:var(--muted)">(${userStats.vocabCorrect}/${userStats.vocabPlayed})</span></div>
+          </div>
+          <div class="stat-box">
+            <label>クイズ総合正解率</label>
+            <div class="stat-num">${quizRate}% <span style="font-size:0.9rem; color:var(--muted)">(${userStats.quizCorrect}/${userStats.quizPlayed})</span></div>
+          </div>
+        </div>
+
+        <h4 style="margin-top:25px; margin-bottom:10px;">📚 科目別 クイズ演習成績</h4>
+        <div style="max-height: 350px; overflow-y: auto;">
+          ${subjectScoreHtml}
+        </div>
       `;
     }
 
