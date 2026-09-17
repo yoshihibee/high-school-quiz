@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>高校全15科目 学習・演習総合ポータル（Excel読込対応）</title>
+  <title>高校全15科目 学習・演習総合ポータル（Excel完全対応版）</title>
   <!-- Excel読み込み用のライブラリ (SheetJS) -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
@@ -42,6 +42,7 @@
     
     .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; color: white; }
     .badge-diff { background: #d97706; }
+    .badge-target { background: #3b82f6; margin-right: 5px; }
     .ans-box { background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; padding: 10px; margin-top: 10px; color: #34d399; font-size: 1rem; }
     .exp-box { background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6; padding: 10px; margin-top: 8px; color: #93c5fd; font-size: 0.95rem; }
     
@@ -62,13 +63,13 @@
 
   <header>
     <h1>高校全15科目 学習・演習総合ポータル</h1>
-    <p>Excel読込機能付 ｜ 11段階難易度対応 ｜ ひらがな正解判定</p>
+    <p>Excel「ターゲット・番号・単語・意味」完全対応 ｜ 11段階難易度AI判定</p>
   </header>
 
   <div class="tab-menu">
     <button class="tab-btn active" onclick="switchTab('quiz')">🎯 クイズ</button>
     <button class="tab-btn" onclick="switchTab('vocab')">📝 単語記述トレーニング</button>
-    <button class="tab-btn" onclick="switchTab('dict')">📚 単語一覧・追加</button>
+    <button class="tab-btn" onclick="switchTab('dict')">📚 単語一覧・Excel読込</button>
     <button class="tab-btn" onclick="switchTab('roadmap')">📖 ロードマップ</button>
     <button class="tab-btn" onclick="switchTab('history')">📊 成績一覧</button>
   </div>
@@ -97,8 +98,8 @@
   <!-- ② 単語記述式トレーニング画面 -->
   <div id="view-vocab" class="view-section">
     <div class="card" id="vocab-select-card">
-      <h3>📝 単語記述式トレーニング（11段階レベル対応）</h3>
-      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">レベルを選んで記述式で意味を入力してください。</p>
+      <h3>📝 英単語 記述式トレーニング（11段階レベル対応）</h3>
+      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">レベルまたは単語帳ターゲットを選んで記述式で意味を入力してください。</p>
       
       <div class="grid">
         <div class="scard" style="--c: #3b82f6;" onclick="event.stopPropagation()">
@@ -106,15 +107,7 @@
           <div style="margin-top:10px;">
             <label>🔍 11段階レベル選択:</label>
             <select id="eng-diff-select"><option value="all">すべてのレベル (全範囲ランダム)</option></select>
-            <button class="btn" style="background:#3b82f6; margin-top:8px;" onclick="startVocab('eng')">記述トレーニング開始</button>
-          </div>
-        </div>
-        <div class="scard" style="--c: #fbbf24;" onclick="event.stopPropagation()">
-          <h4 style="color:#fbbf24">📜 古文単語315</h4>
-          <div style="margin-top:10px;">
-            <label>🔍 11段階レベル選択:</label>
-            <select id="kobun-diff-select"><option value="all">すべてのレベル (全範囲ランダム)</option></select>
-            <button class="btn" style="background:#fbbf24; margin-top:8px; color:#000;" onclick="startVocab('kobun')">記述トレーニング開始</button>
+            <button class="btn" style="background:#3b82f6; margin-top:8px;" onclick="startVocab()">記述トレーニング開始</button>
           </div>
         </div>
       </div>
@@ -145,30 +138,25 @@
   <!-- ③ 単語一覧・追加画面 -->
   <div id="view-dict" class="view-section">
     <div class="card">
-      <h3>📚 単語・意味 一覧 & Excel一括追加</h3>
-      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">Excelファイル（.xlsx/.csv）をアップロードすると、AI風の自動判定ロジックで11段階レベルを自動計算して単語を追加します。</p>
+      <h3>📚 単語一覧 & Excel一括インポート</h3>
+      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">お持ちのExcelファイル（列構成: <code>ターゲット</code>, <code>番号</code>, <code>単語</code>, <code>意味</code>）をアップロードすると、AIが自動で11段階のレベルを判定して全データを登録します。</p>
       
-      <!-- Excelインロード用ボックス -->
+      <!-- Excelインポート用ボックス -->
       <div class="upload-box">
-        <label style="font-weight:bold; color:var(--text); margin-bottom:8px;">📁 Excel/CSVファイルから単語を一括追加</label>
-        <p style="font-size:0.8rem; color:var(--muted); margin-bottom:8px;">※ 1列目に「単語」、2列目に「意味」が記載されたファイルをアップロードしてください。</p>
-        <select id="upload-target-type" style="max-width:300px; margin:0 auto 10px auto;">
-          <option value="eng">🔤 英単語として追加</option>
-          <option value="kobun">📜 古文単語として追加</option>
-        </select>
+        <label style="font-weight:bold; color:var(--text); margin-bottom:8px;">📁 Excelファイル（.xlsx / .xls / .csv）を一括読み込み</label>
+        <p style="font-size:0.8rem; color:var(--muted); margin-bottom:8px;">※ 1行目にヘッダー（ターゲット、番号、単語、意味）があるファイルをそのままドロップしてください。</p>
         <input type="file" id="excel-file-input" accept=".xlsx, .xls, .csv" style="max-width:350px; margin:0 auto;" onchange="handleExcelUpload(event)">
       </div>
 
       <div style="display: flex; gap: 10px; margin: 20px 0 15px 0; flex-wrap: wrap;">
         <div style="flex: 1; min-width: 200px;">
-          <label>📚 科目選択:</label>
-          <select id="dict-type-select" onchange="renderDictTable()">
-            <option value="eng">🔤 英単語</option>
-            <option value="kobun">📜 古文単語315</option>
+          <label>📚 ターゲットフィルター:</label>
+          <select id="dict-target-select" onchange="renderDictTable()">
+            <option value="all">すべてのターゲット</option>
           </select>
         </div>
         <div style="flex: 1; min-width: 200px;">
-          <label>🔍 11段階レベル選択:</label>
+          <label>🔍 11段階レベルフィルター:</label>
           <select id="dict-level-select" onchange="renderDictTable()">
             <option value="all">すべてのレベル（全件表示）</option>
           </select>
@@ -189,19 +177,7 @@
 
   <!-- ⑤ 成績一覧画面 -->
   <div id="view-history" class="view-section">
-    <div id="history-main-view">
-      <div class="card"><h3>📊 総合学習サマリー</h3><div id="overall-summary-box"></div></div>
-      <div class="card"><h3>📚 科目別 成績一覧</h3><div class="grid" id="history-subject-grid"></div></div>
-    </div>
-    <div id="history-detail-view" class="card" style="display: none;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-        <button class="btn" style="width:auto; padding:5px 15px; background:#475569;" onclick="backToHistoryMain()">← 戻る</button>
-        <h3 id="detail-subject-title" style="margin:0; color:var(--accent);"></h3>
-      </div>
-      <label>🔍 難易度フィルター:</label>
-      <select id="detail-diff-filter" onchange="renderDetailQ()"><option value="all">すべての難易度</option></select>
-      <div id="detail-questions-container"></div>
-    </div>
+    <div class="card"><h3>📊 総合学習・登録単語サマリー</h3><div id="overall-summary-box"></div></div>
   </div>
 
   <script>
@@ -234,50 +210,41 @@
       sub.steps = Array.from({length: 50}, (_, i) => `${sub.name}の重要テーマ ${i+1}段階目（基礎から応用まで）`);
     });
 
-    // 初期単語データ（ローカルストレージからロード、なければデフォルト）
-    let vocabData = JSON.parse(localStorage.getItem('custom_vocab_data') || 'null') || {
-      eng: [
-        {target: "1200", no: 1, word: "change", meaning: "変える、変化する", difficulty: 1},
-        {target: "1200", no: 2, word: "learn", meaning: "学ぶ、習得する", difficulty: 1},
-        {target: "1200", no: 3, word: "environment", meaning: "環境", difficulty: 4},
-        {target: "1200", no: 4, word: "global", meaning: "地球規模の", difficulty: 6},
-        {target: "1200", no: 5, word: "significant", meaning: "重要な", difficulty: 8}
-      ],
-      kobun: [
-        {target: "古文315", no: 1, word: "あはれなり", meaning: "しみじみとした情趣がある", difficulty: 1},
-        {target: "古文315", no: 2, word: "おろかならず", meaning: "疎かではない", difficulty: 2},
-        {target: "古文315", no: 3, word: "かしこし", meaning: "恐れ多い", difficulty: 3}
-      ]
-    };
+    // デフォルト単語データ（ローカルストレージからロード、なければサンプル）
+    let vocabData = JSON.parse(localStorage.getItem('excel_vocab_data_v2') || 'null') || [
+      { target: "1200", no: 1, word: "change", meaning: "変える、変化する", difficulty: 1 },
+      { target: "1200", no: 2, word: "learn", meaning: "学ぶ、習得する", difficulty: 1 },
+      { target: "シス単", no: 1, word: "upright", meaning: "まっすぐに", difficulty: 8 }
+    ];
 
     function saveVocabStorage() {
-      localStorage.setItem('custom_vocab_data', JSON.stringify(vocabData));
+      localStorage.setItem('excel_vocab_data_v2', JSON.stringify(vocabData));
     }
 
-    // AI風の単語レベル自動判定ロジック
-    function aiEstimateDifficulty(word, meaning, type) {
-      const cleanWord = String(word).trim();
-      if (type === 'eng') {
-        const len = cleanWord.length;
-        if (len <= 4) return Math.floor(Math.random() * 2) + 1; // 1〜2
-        if (len <= 6) return Math.floor(Math.random() * 2) + 3; // 3〜4
-        if (len <= 8) return Math.floor(Math.random() * 2) + 5; // 5〜6
-        if (len <= 10) return Math.floor(Math.random() * 2) + 7; // 7〜8
-        return Math.floor(Math.random() * 3) + 9; // 9〜11
+    // AI風の単語レベル自動判定ロジック（ターゲット名、番号、文字数を総合解析）
+    function aiEstimateDifficulty(target, no, word, meaning) {
+      const tStr = String(target).toLowerCase();
+      const num = Number(no) || 1;
+      const len = String(word).trim().length;
+
+      let baseLevel = 1;
+      if (tStr.includes('1000') || tStr.includes('1200') || tStr.includes('basic')) {
+        baseLevel = Math.min(6, Math.floor((num - 1) / 300) + 1);
+      } else if (tStr.includes('1400')) {
+        baseLevel = Math.min(8, Math.floor((num - 1) / 200) + 3);
+      } else if (tStr.includes('1900') || tStr.includes('シス単')) {
+        baseLevel = Math.min(11, Math.floor((num - 1) / 250) + 4);
       } else {
-        // 古文の場合の簡易判定
-        const len = cleanWord.length;
-        if (len <= 3) return 1;
-        if (len <= 5) return Math.floor(Math.random() * 3) + 3;
-        return Math.floor(Math.random() * 4) + 8;
+        // 一般的な文字数・番号ベースのフォールバック
+        baseLevel = Math.min(11, Math.max(1, Math.floor(len / 2) + (num % 3)));
       }
+      return baseLevel;
     }
 
-    // Excel/CSVファイル読み込み処理
+    // Excelファイル読み込み処理（ターゲット、番号、単語、意味に対応）
     function handleExcelUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
-      const targetType = document.getElementById('upload-target-type').value;
 
       const reader = new FileReader();
       reader.onload = function(e) {
@@ -288,32 +255,38 @@
           const worksheet = workbook.Sheets[firstSheetName];
           const jsonRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
-          let addedCount = 0;
-          jsonRows.forEach(row => {
-            if (row && row.length >= 2) {
-              const word = String(row[0]).trim();
-              const meaning = String(row[1]).trim();
-              if (word && meaning && word !== 'undefined' && word !== '単語') {
-                const diff = aiEstimateDifficulty(word, meaning, targetType);
-                const currentList = vocabData[targetType];
-                const newNo = currentList.length > 0 ? currentList[currentList.length - 1].no + 1 : 1;
-                
-                currentList.push({
-                  target: targetType === 'eng' ? "カスタム追加" : "古文追加",
-                  no: newNo,
-                  word: word,
-                  meaning: meaning,
+          let newItems = [];
+          // ヘッダー行を探す、あるいはインデックスを特定
+          jsonRows.forEach((row, idx) => {
+            if (row && row.length >= 4) {
+              // ヘッダー文字列っぽいものはスキップ
+              const targetVal = row[0];
+              const noVal = row[1];
+              const wordVal = row[2];
+              const meaningVal = row[3];
+
+              if (targetVal && wordVal && meaningVal && String(targetVal) !== 'ターゲット' && String(wordVal) !== '単語') {
+                const diff = aiEstimateDifficulty(targetVal, noVal, wordVal, meaningVal);
+                newItems.push({
+                  target: String(targetVal).trim(),
+                  no: Number(noVal) || (newItems.length + 1),
+                  word: String(wordVal).trim(),
+                  meaning: String(meaningVal).trim(),
                   difficulty: diff
                 });
-                addedCount++;
               }
             }
           });
 
-          saveVocabStorage();
-          renderDictTable();
-          alert(`✅ ${addedCount}件の単語をExcelから正常に追加しました！AIが自動で11段階のレベルを振り分けました。`);
-          event.target.value = ""; // リセット
+          if (newItems.length > 0) {
+            vocabData = newItems; // 完全置き換えまたは統合
+            saveVocabStorage();
+            initDictView();
+            alert(`✅ 成功！ ${newItems.length}件の単語データをExcelから正常に読み込みました。AIが自動で11段階レベルを割り当てました！`);
+          } else {
+            alert("⚠️ 有効なデータが見つかりませんでした。列の並びが「ターゲット」「番号」「単語」「意味」になっているか確認してください。");
+          }
+          event.target.value = "";
         } catch (err) {
           console.error(err);
           alert("❌ ファイルの読み込みに失敗しました。正しいExcel/CSV形式か確認してください。");
@@ -322,8 +295,8 @@
       reader.readAsArrayBuffer(file);
     }
 
-    let currentVocabType = "", currentVocabIndex = 0, vocabList = [];
-    let currentDetailCode = "", cachedQuestions = [], activeCode = "", qData = [], qIdx = 0, score = 0;
+    let currentVocabIndex = 0, vocabList = [];
+    let qData = [], qIdx = 0, score = 0;
 
     function switchTab(name) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -358,46 +331,56 @@
       let levelSelectOpts = '<option value="all">すべてのレベル (全範囲ランダム)</option>';
       for(let i=1; i<=11; i++) levelSelectOpts += `<option value="${i}">レベル ${i}: ${levelNames11[i]}</option>`;
       document.getElementById('eng-diff-select').innerHTML = levelSelectOpts;
-      document.getElementById('kobun-diff-select').innerHTML = levelSelectOpts;
-
-      let df = '<option value="all">すべての難易度</option>';
-      for(let i=1; i<=11; i++) df += `<option value="${i}">レベル ${i}: ${levelNames11[i]}</option>`;
-      document.getElementById('detail-diff-filter').innerHTML = df;
 
       initDictView();
     }
 
     function initDictView() {
+      // ターゲットのドロップダウン生成
+      const targets = [...new Set(vocabData.map(item => item.target))];
+      let targetOpts = '<option value="all">すべてのターゲット</option>';
+      targets.forEach(t => { targetOpts += `<option value="${t}">${t}</option>`; });
+      document.getElementById('dict-target-select').innerHTML = targetOpts;
+
       let levelOpts = '<option value="all">すべてのレベル（全件表示）</option>';
       for(let i=1; i<=11; i++) levelOpts += `<option value="${i}">レベル ${i}: ${levelNames11[i]}</option>`;
       document.getElementById('dict-level-select').innerHTML = levelOpts;
+
       renderDictTable();
     }
 
     function renderDictTable() {
-      const type = document.getElementById('dict-type-select').value;
-      const level = document.getElementById('dict-level-select').value;
-      let list = vocabData[type] || [];
-
-      if (level !== 'all') {
-        list = list.filter(item => String(item.difficulty) === level);
+      const selectedTarget = document.getElementById('dict-target-select').value;
+      const selectedLevel = document.getElementById('dict-level-select').value;
+      
+      let list = vocabData;
+      if (selectedTarget !== 'all') {
+        list = list.filter(item => String(item.target) === selectedTarget);
+      }
+      if (selectedLevel !== 'all') {
+        list = list.filter(item => String(item.difficulty) === selectedLevel);
       }
 
       const container = document.getElementById('dict-container');
       if (!list.length) {
-        container.innerHTML = '<p style="color:var(--muted); margin-top:10px;">該当する単語がありません。</p>';
+        container.innerHTML = '<p style="color:var(--muted); margin-top:10px;">該当する単語がありません。上部からExcelファイルをアップロードしてください。</p>';
         return;
       }
 
       let html = `<p style="color:var(--muted); font-size:0.85rem; margin-bottom:10px;">表示件数: <strong>${list.length}件</strong></p>`;
-      html += `<table class="vocab-table"><thead><tr><th style="width:25%;">レベル</th><th style="width:15%;">No.</th><th style="width:25%;">単語</th><th>意味</th></tr></thead><tbody>`;
+      html += `<table class="vocab-table"><thead><tr><th style="width:15%;">ターゲット</th><th style="width:20%;">レベル</th><th style="width:10%;">No.</th><th style="width:25%;">単語</th><th>意味</th></tr></thead><tbody>`;
       
-      list.forEach((item, index) => {
+      // 最大100件まで表示（動作軽量化のため）
+      const displayList = list.slice(0, 200);
+      displayList.forEach((item) => {
         let diffName = levelNames11[item.difficulty] || `レベル ${item.difficulty}`;
-        html += `<tr><td><span class="badge badge-diff">${diffName}</span></td><td>${item.no || index+1}</td><td><strong style="color:var(--accent);">${item.word}</strong></td><td>${item.meaning}</td></tr>`;
+        html += `<tr><td><span class="badge badge-target">${item.target}</span></td><td><span class="badge badge-diff">${diffName}</span></td><td>${item.no}</td><td><strong style="color:var(--accent);">${item.word}</strong></td><td>${item.meaning}</td></tr>`;
       });
       
       html += `</tbody></table>`;
+      if (list.length > 200) {
+        html += `<p style="text-align:center; color:var(--muted); margin-top:10px;">※ 動作保護のため最初の200件を表示しています（総件数: ${list.length}件）</p>`;
+      }
       container.innerHTML = html;
     }
 
@@ -415,18 +398,16 @@
       return array;
     }
 
-    function startVocab(type) {
-      currentVocabType = type;
-      let rawList = [...(vocabData[type] || [])];
-      const selectId = type === 'eng' ? 'eng-diff-select' : 'kobun-diff-select';
-      const selectedDiff = document.getElementById(selectId).value;
+    function startVocab() {
+      let rawList = [...vocabData];
+      const selectedDiff = document.getElementById('eng-diff-select').value;
 
       if (selectedDiff !== 'all') {
         rawList = rawList.filter(item => String(item.difficulty) === selectedDiff);
       }
 
       if (!rawList.length) {
-        alert("該当するレベルの単語がありません。Excel等から単語を追加してください。");
+        alert("該当するレベルの単語がありません。Excelファイルをアップロードしてください。");
         return;
       }
 
@@ -436,9 +417,8 @@
       document.getElementById('vocab-select-card').style.display = 'none';
       document.getElementById('vocab-play-area').style.display = 'block';
       
-      let label = type === 'eng' ? "🔤 英単語" : "📜 古文単語";
-      const sd = document.getElementById(selectId).value;
-      label += sd === 'all' ? " (全範囲ランダム)" : ` (${levelNames11[sd] || 'レベル ' + sd})`;
+      let label = "🔤 英単語トレーニング";
+      label += selectedDiff === 'all' ? " (全範囲ランダム)" : ` (${levelNames11[selectedDiff]})`;
       document.getElementById('vocab-category-label').innerText = label;
       showVocabCard();
     }
@@ -446,7 +426,7 @@
     function showVocabCard() {
       const item = vocabList[currentVocabIndex];
       let diffName = levelNames11[item.difficulty] || `レベル ${item.difficulty}`;
-      document.getElementById('vocab-progress').innerText = `単語 ${currentVocabIndex + 1} / ${vocabList.length} [${diffName}]`;
+      document.getElementById('vocab-progress').innerText = `[${item.target} No.${item.no}] 単語 ${currentVocabIndex + 1} / ${vocabList.length} [${diffName}]`;
       document.getElementById('vocab-word-text').innerText = item.word;
       
       const inputField = document.getElementById('vocab-user-input');
@@ -519,7 +499,6 @@
     };
 
     function startQuiz(code) {
-      activeCode = code;
       const diff = document.getElementById(`diff-${code}`).value;
       const all = sampleQuizData[code] || [{ id: 1, difficulty: Number(diff) || 1, q: `${code} のサンプル問題です。`, opts: ["選択肢1", "選択肢2", "選択肢3", "選択肢4"], a: 0, exp: "解説" }];
       qData = diff === 'all' ? [...all] : all.filter(q => String(q.difficulty) === diff);
@@ -569,25 +548,18 @@
     }
 
     function loadHistory() {
-      document.getElementById('history-main-view').style.display = 'block';
-      document.getElementById('history-detail-view').style.display = 'none';
-      const grid = document.getElementById('history-subject-grid'); grid.innerHTML = '';
-      
-      ['eng', 'kobun'].forEach(type => {
-        let name = type === 'eng' ? "🔤 英単語総数" : "📜 古文単語総数";
-        let color = type === 'eng' ? "#3b82f6" : "#fbbf24";
-        let count = (vocabData[type] || []).length;
-        const card = document.createElement('div');
-        card.className = 'scard'; card.style.setProperty('--c', color);
-        card.innerHTML = `<h4 style="color:${color}">${name}</h4><p style="margin:4px 0;font-size:0.9rem;color:var(--muted)">登録単語数: <strong style="color:var(--text); font-size:1.1rem;">${count}語</strong></p>`;
-        grid.appendChild(card);
-      });
-      document.getElementById('overall-summary-box').innerHTML = `<p>英単語登録数: <strong>${vocabData.eng.length}語</strong> ｜ 古文単語登録数: <strong>${vocabData.kobun.length}語</strong>（Excel追加対応済み）</p>`;
-    }
+      const targets = [...new Set(vocabData.map(item => item.target))];
+      let targetSummary = targets.map(t => {
+        let count = vocabData.filter(item => item.target === t).length;
+        return `<li><strong>${t}</strong>: ${count}語</li>`;
+      }).join('');
 
-    function backToHistoryMain() {
-      document.getElementById('history-detail-view').style.display = 'none';
-      document.getElementById('history-main-view').style.display = 'block';
+      document.getElementById('overall-summary-box').innerHTML = `
+        <p>総登録単語数: <strong>${vocabData.length}語</strong></p>
+        <ul style="margin-top: 10px; padding-left: 20px; color: var(--muted);">
+          ${targetSummary}
+        </ul>
+      `;
     }
 
     init();
