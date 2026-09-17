@@ -103,16 +103,31 @@
   <!-- ② 単語記述式トレーニング画面 -->
   <div id="view-vocab" class="view-section">
     <div class="card" id="vocab-select-card">
-      <h3>📝 英単語 記述式トレーニング（11段階レベル対応）</h3>
-      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">レベルを選択し、記述式で意味を入力してください。正解数は成績に記録されます。</p>
+      <h3>📝 英単語 記述式トレーニング（出題数・未習得モード対応）</h3>
+      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">レベルや出題数を選んでスタートできます。正解した単語は自動で一覧が緑色になり、「未習得のみ」を選ぶとまだ正解していない単語だけを集中して出題できます。</p>
       
       <div class="grid">
         <div class="scard" style="--c: #3b82f6;" onclick="event.stopPropagation()">
-          <h4 style="color:#3b82f6">🔤 英単語トレーニング</h4>
+          <h4 style="color:#3b82f6">🔤 英単語トレーニング設定</h4>
           <div style="margin-top:10px;">
             <label>🔍 11段階レベル選択:</label>
             <select id="eng-diff-select"><option value="all">すべてのレベル (全範囲ランダム)</option></select>
-            <button class="btn" style="background:#3b82f6; margin-top:8px;" onclick="startVocab()">記述トレーニング開始</button>
+            
+            <label style="margin-top:8px;">📊 出題数:</label>
+            <select id="vocab-count-select">
+              <option value="10">10問</option>
+              <option value="20" selected>20問</option>
+              <option value="50">50問</option>
+              <option value="all">全問（制限なし）</option>
+            </select>
+
+            <label style="margin-top:8px;">🎯 出題モード:</label>
+            <select id="vocab-mode-select">
+              <option value="all">すべての単語から出題</option>
+              <option value="unsolved">まだ解けていない（未正解）単語のみ</option>
+            </select>
+
+            <button class="btn" style="background:#3b82f6; margin-top:12px;" onclick="startVocab()">記述トレーニング開始</button>
           </div>
         </div>
       </div>
@@ -144,7 +159,7 @@
   <div id="view-dict" class="view-section">
     <div class="card">
       <h3>📚 単語一覧 & Excel一括インポート</h3>
-      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">お持ちのExcelファイル（列構成: <code>ターゲット</code>, <code>番号</code>, <code>単語</code>, <code>意味</code>）をアップロードすると、AIが自動で11段階のレベルを判定して全データを登録します。</p>
+      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">正解した単語は自動的にテーブル上で<strong>緑色</strong>にハイライトされます。</p>
       
       <div class="upload-box">
         <label style="font-weight:bold; color:var(--text); margin-bottom:8px;">📁 Excelファイル（.xlsx / .xls / .csv）を一括読み込み</label>
@@ -341,15 +356,15 @@
       }
     ];
 
-    // データストレージのロード
-    let vocabData = JSON.parse(localStorage.getItem('excel_vocab_data_v2') || 'null') || [
-      { target: "1200", no: 1, word: "change", meaning: "変える、変化する", difficulty: 1 },
-      { target: "1200", no: 2, word: "learn", meaning: "学ぶ、習得する", difficulty: 1 },
-      { target: "シス単", no: 1, word: "upright", meaning: "まっすぐに", difficulty: 8 }
+    // データストレージのロード（各単語に isSolved: false などのステータスを持たせる）
+    let vocabData = JSON.parse(localStorage.getItem('excel_vocab_data_v3') || 'null') || [
+      { target: "1200", no: 1, word: "change", meaning: "変える、変化する", difficulty: 1, isSolved: false },
+      { target: "1200", no: 2, word: "learn", meaning: "学ぶ、習得する", difficulty: 1, isSolved: false },
+      { target: "シス単", no: 1, word: "upright", meaning: "まっすぐに", difficulty: 8, isSolved: false }
     ];
 
     // 成績データのロード
-    let userStats = JSON.parse(localStorage.getItem('user_stats_v2') || 'null') || {
+    let userStats = JSON.parse(localStorage.getItem('user_stats_v3') || 'null') || {
       quizPlayed: 0,
       quizCorrect: 0,
       vocabPlayed: 0,
@@ -358,8 +373,8 @@
     };
 
     function saveStorage() {
-      localStorage.setItem('excel_vocab_data_v2', JSON.stringify(vocabData));
-      localStorage.setItem('user_stats_v2', JSON.stringify(userStats));
+      localStorage.setItem('excel_vocab_data_v3', JSON.stringify(vocabData));
+      localStorage.setItem('user_stats_v3', JSON.stringify(userStats));
     }
 
     // AI風難易度判定
@@ -405,7 +420,8 @@
                   no: Number(noVal) || (newItems.length + 1),
                   word: String(wordVal).trim(),
                   meaning: String(meaningVal).trim(),
-                  difficulty: diff
+                  difficulty: diff,
+                  isSolved: false
                 });
               }
             }
@@ -456,9 +472,9 @@
         card.innerHTML = `<h4 style="color:${sub.color}">${sub.name}</h4><label>難易度:</label><select id="diff-${sub.code}" onclick="event.stopPropagation()">${diffOpts}</select><button class="btn" style="background:${sub.color}" onclick="event.stopPropagation();startQuiz('${sub.code}')">🎯 クイズ開始</button>`;
         qList.appendChild(card);
 
-        // ロードマップカード（<ol>タグの自動番号機能に任せるため、テキストの先頭番号を除去するのみに修正）
+        // ロードマップカード
         const formattedSteps = sub.steps.map((s) => {
-          const cleanedText = s.replace(/^(\d+(\.\d+)*)\.?\s*/, ''); // 先頭の「01.」や「1.01.」などを完全に除去
+          const cleanedText = s.replace(/^(\d+(\.\d+)*)\.?\s*/, '');
           return `<li>${cleanedText}</li>`;
         }).join('');
 
@@ -502,12 +518,16 @@
         return;
       }
 
-      let html = `<p style="color:var(--muted); font-size:0.85rem; margin-bottom:10px;">表示件数: <strong>${list.length}件</strong></p>`;
+      let html = `<p style="color:var(--muted); font-size:0.85rem; margin-bottom:10px;">表示件数: <strong>${list.length}件</strong> （正解済みの単語は緑色で表示されます）</p>`;
       html += `<table class="vocab-table"><thead><tr><th style="width:15%;">ターゲット</th><th style="width:20%;">レベル</th><th style="width:10%;">No.</th><th style="width:25%;">単語</th><th>意味</th></tr></thead><tbody>`;
       
       list.slice(0, 200).forEach((item) => {
         let diffName = levelNames11[item.difficulty] || `レベル ${item.difficulty}`;
-        html += `<tr><td><span class="badge badge-target">${item.target}</span></td><td><span class="badge badge-diff">${diffName}</span></td><td>${item.no}</td><td><strong style="color:var(--accent);">${item.word}</strong></td><td>${item.meaning}</td></tr>`;
+        // 正解している場合は行を緑色にハイライト
+        let rowStyle = item.isSolved ? 'style="background: rgba(16, 185, 129, 0.15); color: #34d399;"' : '';
+        let wordColorStyle = item.isSolved ? 'style="color: #34d399; font-weight: bold;"' : 'style="color: var(--accent); font-weight: bold;"';
+
+        html += `<tr ${rowStyle}><td><span class="badge badge-target">${item.target}</span></td><td><span class="badge badge-diff">${diffName}</span></td><td>${item.no}</td><td><strong ${wordColorStyle}>${item.word} ${item.isSolved ? '✓' : ''}</strong></td><td>${item.meaning}</td></tr>`;
       });
       html += `</tbody></table>`;
       container.innerHTML = html;
@@ -531,21 +551,41 @@
     function startVocab() {
       let rawList = [...vocabData];
       const selectedDiff = document.getElementById('eng-diff-select').value;
-      if (selectedDiff !== 'all') rawList = rawList.filter(item => String(item.difficulty) === selectedDiff);
+      const countOption = document.getElementById('vocab-count-select').value;
+      const modeOption = document.getElementById('vocab-mode-select').value;
+
+      // 1. レベルフィルター
+      if (selectedDiff !== 'all') {
+        rawList = rawList.filter(item => String(item.difficulty) === selectedDiff);
+      }
+
+      // 2. 「未習得（まだ解けていない）単語のみ」フィルター
+      if (modeOption === 'unsolved') {
+        rawList = rawList.filter(item => !item.isSolved);
+      }
 
       if (!rawList.length) {
-        alert("該当するレベルの単語がありません。");
+        alert("条件に一致する単語がありません！（すべて正解済み、または該当データがありません）");
         return;
       }
 
-      vocabList = shuffleArray(rawList);
+      // シャッフルしてから指定された問題数（10, 20, 50, all）に絞り込む
+      rawList = shuffleArray(rawList);
+      if (countOption !== 'all') {
+        const limit = parseInt(countOption, 10);
+        vocabList = rawList.slice(0, limit);
+      } else {
+        vocabList = rawList;
+      }
+
       currentVocabIndex = 0;
       
       document.getElementById('vocab-select-card').style.display = 'none';
       document.getElementById('vocab-play-area').style.display = 'block';
       
       let label = "🔤 英単語トレーニング";
-      label += selectedDiff === 'all' ? " (全範囲ランダム)" : ` (${levelNames11[selectedDiff]})`;
+      label += selectedDiff === 'all' ? " (全範囲)" : ` (${levelNames11[selectedDiff]})`;
+      label += modeOption === 'unsolved' ? " 【未習得モード】" : "";
       document.getElementById('vocab-category-label').innerText = label;
       showVocabCard();
     }
@@ -595,15 +635,22 @@
 
       // 成績の集計更新
       userStats.vocabPlayed++;
-      if (isCorrect) userStats.vocabCorrect++;
+      if (isCorrect) {
+        userStats.vocabCorrect++;
+        // 正解した場合、対応する大元の単語データの isSolved を true にして保存
+        const originalItem = vocabData.find(v => v.target === item.target && v.no === item.no && v.word === item.word);
+        if (originalItem) {
+          originalItem.isSolved = true;
+        }
+      }
       saveStorage();
 
       const judge = document.getElementById('vocab-judge');
       if (isCorrect) {
-        judge.innerHTML = "⭕ 正解！（ニュアンス判定クリア）";
+        judge.innerHTML = "⭕ 正解！（単語一覧が緑色になりました！）";
         judge.style.color = "#34d399";
       } else {
-        judge.innerHTML = "❌ 不正解...";
+        judge.innerHTML = "❌ 不正解...（次回の未習得モードに出題されます）";
         judge.style.color = "#f87171";
       }
 
@@ -616,7 +663,7 @@
       if (currentVocabIndex < vocabList.length) {
         showVocabCard();
       } else {
-        alert("お疲れ様でした！このセッションの単語をすべて完了しました。");
+        alert("お疲れ様でした！今回のセッションはすべて終了しました。");
         exitVocab();
       }
     }
@@ -710,6 +757,7 @@
     // --- 成績一覧ダッシュボード ---
     function loadHistory() {
       const vocabTotal = vocabData.length;
+      const solvedCount = vocabData.filter(v => v.isSolved).length;
       const vocabRate = userStats.vocabPlayed > 0 ? Math.round((userStats.vocabCorrect / userStats.vocabPlayed) * 100) : 0;
       const quizRate = userStats.quizPlayed > 0 ? Math.round((userStats.quizCorrect / userStats.quizPlayed) * 100) : 0;
 
@@ -729,8 +777,8 @@
       document.getElementById('overall-summary-box').innerHTML = `
         <div class="stats-grid">
           <div class="stat-box">
-            <label>登録単語総数</label>
-            <div class="stat-num">${vocabTotal} 語</div>
+            <label>登録単語総数 / 正解済</label>
+            <div class="stat-num">${vocabTotal} 語 <span style="font-size:1rem; color:#34d399;">(緑化:${solvedCount}語)</span></div>
           </div>
           <div class="stat-box">
             <label>単語トレーニング正解率</label>
