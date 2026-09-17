@@ -57,7 +57,7 @@
 
   <header>
     <h1>高校全15科目 学習・演習総合ポータル</h1>
-    <p>ダークモード ｜ 50段階ロードマップ ｜ 単語暗記モード (全8,222語対応) ｜ 個別正誤管理</p>
+    <p>ダークモード ｜ 50段階ロードマップ ｜ 単語暗記モード (古文単語315対応) ｜ 個別正誤管理</p>
   </header>
 
   <div class="tab-menu">
@@ -100,8 +100,8 @@
           <button class="btn" style="background:#3b82f6; margin-top:10px;">暗記を始める</button>
         </div>
         <div class="scard" style="--c: #fbbf24;" onclick="startVocab('kobun')">
-          <h4 style="color:#fbbf24">📜 重要古文単語マスター</h4>
-          <p style="font-size:0.85rem; color:var(--muted)">大学受験必須の古文単語の意味とコアイメージを暗記</p>
+          <h4 style="color:#fbbf24">📜 古文単語315（重要古文単語）</h4>
+          <p style="font-size:0.85rem; color:var(--muted)">『古文単語315』等の頻出重要古文単語を網羅して効率よく暗記</p>
           <button class="btn" style="background:#fbbf24; margin-top:10px; color:#000;">暗記を始める</button>
         </div>
       </div>
@@ -122,7 +122,7 @@
 
       <button class="btn" id="vocab-flip-btn" style="background:#475569; margin-bottom:15px;" onclick="flipVocabCard()">💡 意味を表示する</button>
 
-      <div style="display:flex; gap:10px;" id="vocab-action-btns" style="display:none;">
+      <div style="display:flex; gap:10px;" id="vocab-action-btns">
         <button class="btn" style="background:#dc2626;" onclick="answerVocab(false)">❌ まだ覚えてない</button>
         <button class="btn" style="background:#059669;" onclick="answerVocab(true)">⭕ 覚えた！</button>
       </div>
@@ -178,7 +178,6 @@
       sub.steps = Array.from({length: 50}, (_, i) => `${sub.name}の重要テーマ ${i+1}段階目（基礎から応用・発展までの段階的習得プロセス）`);
     });
 
-    // Excelから読み込んだ全8,222語の英単語データ ＋ 古文単語データ
     const vocabData = {
       eng: [
         {"word": "change", "meaning": "変える"}, {"word": "learn", "meaning": "学ぶ"}, {"word": "help", "meaning": "手伝う，助ける"}, {"word": "need", "meaning": "必要とする"}, {"word": "live", "meaning": "住んでいる"},
@@ -209,7 +208,29 @@
         { word: "かたし", meaning: "難しい、めったにない" }, { word: "くちし", meaning: "朽ちる、腐る" },
         { word: "こころにくし", meaning: "奥ゆかしい、上品で心惹かれる" }, { word: "さがなし", meaning: "性質が悪い、いたずらだ" },
         { word: "すずし", meaning: "涼しい、清々しい" }, { word: "せちなり", meaning: "切実だ、ひたすらだ" },
-        { word: "たール", meaning: "優れている、気高い" }, { word: "つかまつる", meaning: "お仕えする、申し上げます（謙譲語）" }
+        { word: "たール", meaning: "優れている、気高い" }, { word: "つかまつる", meaning: "お仕えする、申し上げます（謙譲語）" },
+        { word: "あかず", meaning: "物足りない、満ち足りない" }, { word: "あからさまなり", meaning: "ちょっと、急に" },
+        { word: "あさまし", meaning: "驚きあきれるほどだ" }, { word: "あし", meaning: "悪い" },
+        { word: "あそび", meaning: "管絃・詩歌などの遊び、行楽" }, { word: "あたらしい", meaning: "（※古文では使わない）" },
+        { word: "いと", meaning: "とても、非常に、大して（～ず）" }, { word: "いとど", meaning: "ますます、いっそう" },
+        { word: "いとほし", meaning: "かわいそうだ、気の毒だ" }, { word: "いね", meaning: "寝る" },
+        { word: "いま", meaning: "すぐ、もう" }, { word: "うけたまはる", meaning: "お聞きする（「聞く」の謙譲語）" },
+        { word: "うつつ", meaning: "現実、正気" }, { word: "うるはし", meaning: "端正だ、美しい、仲が良い" },
+        { word: "おきつ", meaning: "決める、指図する" }, { word: "おこなふ", meaning: "仏道の修行をする、勤める" },
+        { word: "おとづる", meaning: "音連れる、手紙を送る、訪れる" }, { word: "おほやけ", meaning: "朝廷、公的機関" },
+        { word: "おぼえ", meaning: "評判、寵愛" }, { word: "かきくらす", meaning: "心を暗くする、涙で視界を覆う" },
+        { word: "かたへ", meaning: "片方、そば、仲間" }, { word: "かたち", meaning: "容貌、顔立ち、姿" },
+        { word: "かまへて", meaning: "ぜひとも、心して、決して（～ず）" }, { word: "きは", meaning: "端、程度、身分" },
+        { word: "きよらなり", meaning: "上品で美しい" }, { word: "ぐす", meaning: "引き連れる、従う、揃う" },
+        { word: "けしき", meaning: "様子、機嫌、気配" }, { word: "こころおきなし", meaning: "遠慮がいらない、気心が知れている" },
+        { word: "ところせし", meaning: "窮屈だ、気詰まりだ、おもぐるしい" }, { word: "なべて", meaning: "一般に、総じて、普通" },
+        { word: "ねんごろなり", meaning: "熱心だ、親密だ" }, { word: "ひが事", meaning: "間違い、過失" },
+        { word: "ふろしき", meaning: "（※近代以降の言葉）" }, { word: "ほい", meaning: "本懐、かねてからの望み" },
+        { word: "まうす", meaning: "申し上げる（謙譲語）" }, { word: "まどふ", meaning: "心が乱れる、迷う、ひどく～する" },
+        { word: "みそかに", meaning: "ひそかに、こっそりと" }, { word: "むすぶ", meaning: "両手で水などをすくう、結ぶ" },
+        { word: "めづらし", meaning: "新鮮だ、すばらしい、めったにない" }, { word: "やう", meaning: "理由、様子、方法、こと" },
+        { word: "よし", meaning: "理由、手段、由緒、風情" }, { word: "わびし", meaning: "つらい、興ざめだ、みすぼらしい" },
+        { word: "わたる", meaning: "行く、来る、一面に～する、ずっと～する" }, { word: "をさなげなり", meaning: "幼い様子だ" }
       ]
     };
 
@@ -262,7 +283,7 @@
       currentVocabIndex = 0;
       document.getElementById('vocab-select-card').style.display = 'none';
       document.getElementById('vocab-play-area').style.display = 'block';
-      document.getElementById('vocab-category-label').innerText = type === 'eng' ? "🔤 英単語データベース" : "📜 重要古文単語";
+      document.getElementById('vocab-category-label').innerText = type === 'eng' ? "🔤 英単語データベース" : "📜 古文単語315";
       showVocabCard();
     }
 
@@ -389,7 +410,7 @@
       });
 
       let tRate = totS ? Math.round((totC/totS)*100) : 0;
-      document.getElementById('overall-summary-box').innerHTML = `<p>クイズ総解答数: <strong>${totS}問</strong> ｜ クイズ全体正答率: <strong style="color:var::accent">${tRate}%</strong></p>`;
+      document.getElementById('overall-summary-box').innerHTML = `<p>クイズ総解答数: <strong>${totS}問</strong> ｜ クイズ全体正答率: <strong style="color:var(--accent)">${tRate}%</strong></p>`;
     }
 
     async function openDetail(code, name) {
