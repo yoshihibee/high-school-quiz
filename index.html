@@ -35,6 +35,7 @@
     
     .btn { background: var(--accent); color: #fff; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; font-size: 14px; }
     .btn:hover { opacity: 0.9; }
+    .btn:disabled { background: #475569; cursor: not-allowed; opacity: 0.6; }
     select, input { padding: 10px; width: 100%; margin-bottom: 10px; background: var(--bg); color: #fff; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; font-size: 16px; }
     label { font-size: 0.85rem; color: var(--muted); display: block; margin-bottom: 3px; }
     
@@ -62,7 +63,7 @@
 
   <header>
     <h1>高校全15科目 学習・演習総合ポータル</h1>
-    <p>ダークモード ｜ 50段階ロードマップ ｜ 単語記述式ニュアンス判定モード ｜ 全4,694語完全網羅</p>
+    <p>11段階難易度対応 ｜ ひらがな正解判定 ｜ 回答変更不可モード</p>
   </header>
 
   <div class="tab-menu">
@@ -97,18 +98,18 @@
   <!-- ② 単語記述式トレーニング画面 -->
   <div id="view-vocab" class="view-section">
     <div class="card" id="vocab-select-card">
-      <h3>📝 単語記述式トレーニング（全4,694語完全網羅）</h3>
-      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">ステージを選んで記述式で意味を入力しトレーニングできます。</p>
+      <h3>📝 単語記述式トレーニング（11段階レベル対応）</h3>
+      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">レベルを選んで記述式で意味を入力してください。※ひらがな入力でも正解になり、一度回答すると変更できません。</p>
       
       <div class="grid">
         <!-- 英単語ブロック -->
         <div class="scard" style="--c: #3b82f6;" onclick="event.stopPropagation()">
-          <h4 style="color:#3b82f6">🔤 英単語トレーニング (全4,694語)</h4>
-          <p style="font-size:0.85rem; color:var(--muted)">ステージ（1〜30）を選んで記述式トレーニング</p>
+          <h4 style="color:#3b82f6">🔤 英単語トレーニング</h4>
+          <p style="font-size:0.85rem; color:var(--muted)">11段階からレベルを選択</p>
           <div style="margin-top:10px;">
-            <label>🔍 英単語 ステージ選択:</label>
+            <label>🔍 11段階レベル選択:</label>
             <select id="eng-diff-select">
-              <option value="all">すべての難易度 (全範囲ランダム)</option>
+              <option value="all">すべてのレベル (全範囲ランダム)</option>
             </select>
             <button class="btn" style="background:#3b82f6; margin-top:8px;" onclick="startVocab('eng')">記述トレーニング開始</button>
           </div>
@@ -117,11 +118,11 @@
         <!-- 古文単語ブロック -->
         <div class="scard" style="--c: #fbbf24;" onclick="event.stopPropagation()">
           <h4 style="color:#fbbf24">📜 古文単語315</h4>
-          <p style="font-size:0.85rem; color:var(--muted)">ステージを選んで記述式で意味を入力</p>
+          <p style="font-size:0.85rem; color:var(--muted)">11段階からレベルを選択</p>
           <div style="margin-top:10px;">
-            <label>🔍 古文単語 ステージ選択:</label>
+            <label>🔍 11段階レベル選択:</label>
             <select id="kobun-diff-select">
-              <option value="all">すべての難易度 (全範囲ランダム)</option>
+              <option value="all">すべてのレベル (全範囲ランダム)</option>
             </select>
             <button class="btn" style="background:#fbbf24; margin-top:8px; color:#000;" onclick="startVocab('kobun')">記述トレーニング開始</button>
           </div>
@@ -143,8 +144,8 @@
 
       <div style="margin-bottom: 15px;">
         <label for="vocab-user-input"><strong>✏️ 意味（日本語訳）を入力してください:</strong></label>
-        <input type="text" id="vocab-user-input" placeholder="例: 変える、影響を与える、など" onkeypress="if(event.key==='Enter') submitVocabAnswer()">
-        <button class="btn" style="margin-top: 5px;" onclick="submitVocabAnswer()">回答する</button>
+        <input type="text" id="vocab-user-input" placeholder="例: ひらがなでもOK（例: りんご）" onkeypress="if(event.key==='Enter') submitVocabAnswer()">
+        <button id="vocab-submit-btn" class="btn" style="margin-top: 5px;" onclick="submitVocabAnswer()">回答する（変更不可）</button>
       </div>
 
       <div id="vocab-feedback-area" style="display:none; margin-top:15px;">
@@ -158,21 +159,21 @@
   <!-- ③ 単語一覧・辞書画面 -->
   <div id="view-dict" class="view-section">
     <div class="card">
-      <h3>📚 単語・意味 一覧（ターゲット・何番目・単語・意味）</h3>
-      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">全4,694語のリストを一覧で確認できます。</p>
+      <h3>📚 単語・意味 一覧（11段階対応）</h3>
+      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">全単語のリストを11段階のレベル別に確認できます。</p>
       
       <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
         <div style="flex: 1; min-width: 200px;">
           <label>📚 科目選択:</label>
           <select id="dict-type-select" onchange="renderDictTable()">
-            <option value="eng">🔤 英単語（全4,694語完全網羅）</option>
+            <option value="eng">🔤 英単語</option>
             <option value="kobun">📜 古文単語315</option>
           </select>
         </div>
         <div style="flex: 1; min-width: 200px;">
-          <label>🔍 ステージ選択:</label>
+          <label>🔍 11段階レベル選択:</label>
           <select id="dict-level-select" onchange="renderDictTable()">
-            <option value="all">すべてのステージ（全件表示）</option>
+            <option value="all">すべてのレベル（全件表示）</option>
           </select>
         </div>
       </div>
@@ -202,12 +203,27 @@
         <h3 id="detail-subject-title" style="margin:0; color:var(--accent);"></h3>
       </div>
       <label>🔍 難易度フィルター:</label>
-      <select id="detail-diff-filter" onchange="renderSubjectDetailQuestions()"><option value="all">すべての難易度</option></select>
+      <select id="detail-diff-filter" onchange="renderDetailQ()"><option value="all">すべての難易度</option></select>
       <div id="detail-questions-container"></div>
     </div>
   </div>
 
   <script>
+    // 11段階の難易度レベル定義
+    const levelNames11 = {
+      1: "中学校卒業レベル",
+      2: "高校1年生前期レベル",
+      3: "高校1年生後期レベル",
+      4: "高校2年生前期レベル",
+      5: "高校2年生後期レベル",
+      6: "高校3年生前期レベル",
+      7: "高校3年生後期レベル",
+      8: "共通テストレベル",
+      9: "地方国公立レベル",
+      10: "中堅国公立レベル",
+      11: "旧帝国公立レベル"
+    };
+
     const subjects = [
       { code: "eng_read", name: "英語リーディング", color: "#3b82f6", theme: "文法構造と長文読解" },
       { code: "eng_listen", name: "英語リスニング", color: "#60a5fa", theme: "音声知覚と実践的リスニング" },
@@ -232,7 +248,7 @@
 
     const vocabData = { eng: [], kobun: [] };
 
-    // 古文単語315データ
+    // 古文単語315データ（difficultyを1〜11にマッピング）
     const rawKobunList = [
       {target: "古文315", no: 1, word: "あはれなり", meaning: "しみじみとした情趣がある", difficulty: 1},
       {target: "古文315", no: 2, word: "おろかならず", meaning: "疎かではない、熱心だ", difficulty: 2},
@@ -243,7 +259,8 @@
       {target: "古文315", no: 7, word: "ねんず", meaning: "心の中で祈る、我慢する", difficulty: 7},
       {target: "古文315", no: 8, word: "まめまめし", meaning: "実直だ、真面目だ", difficulty: 8},
       {target: "古文315", no: 9, word: "むつかし", meaning: "不快だ、気味が悪い", difficulty: 9},
-      {target: "古文315", no: 10, word: "めやすし", meaning: "見苦しくない、感じが良い", difficulty: 10}
+      {target: "古文315", no: 10, word: "めやすし", meaning: "見苦しくない、感じが良い", difficulty: 10},
+      {target: "古文315", no: 11, word: "いみじ", meaning: "非常に、すばらしい、ひどい", difficulty: 11}
     ];
     const uniqueKobunMap = new Map();
     rawKobunList.forEach(item => {
@@ -252,18 +269,22 @@
     });
     vocabData.kobun = Array.from(uniqueKobunMap.values());
 
-    // 英単語データを外部JSONから一括非同期ロード
     async function loadVocabData() {
       try {
         const res = await fetch('db_eng_vocab.json');
         if (res.ok) {
           vocabData.eng = await res.json();
+          // もしJSONデータのdifficultyが1〜11に収まっていない場合のフォールバック補正
+          vocabData.eng.forEach(item => {
+            if (!item.difficulty || item.difficulty < 1) item.difficulty = 1;
+            if (item.difficulty > 11) item.difficulty = ((item.difficulty - 1) % 11) + 1;
+          });
         } else {
           vocabData.eng = [{target: "1200", no: 1, word: "change", meaning: "変える", difficulty: 1}];
         }
       } catch (e) {
         console.error("英単語データの読み込みに失敗しました", e);
-        vocabData.eng = [];
+        vocabData.eng = [{target: "1200", no: 1, word: "change", meaning: "変える", difficulty: 1}];
       }
       initDictView();
     }
@@ -287,7 +308,7 @@
       qList.innerHTML = ''; rmContainer.innerHTML = '';
 
       let diffOpts = '<option value="all">すべての難易度</option>';
-      for(let i=1; i<=20; i++) diffOpts += `<option value="${i}">レベル ${i}</option>`;
+      for(let i=1; i<=11; i++) diffOpts += `<option value="${i}">レベル ${i}: ${levelNames11[i]}</option>`;
 
       subjects.forEach((sub, idx) => {
         const card = document.createElement('div');
@@ -301,21 +322,26 @@
         rmContainer.appendChild(rm);
       });
 
-      let diffSelectOpts = '<option value="all">すべての難易度 (ランダム)</option>';
-      for(let i=1; i<=30; i++) diffSelectOpts += `<option value="${i}">ステージ ${i}</option>`;
-      document.getElementById('eng-diff-select').innerHTML = diffSelectOpts;
-      document.getElementById('kobun-diff-select').innerHTML = diffSelectOpts;
+      // 11段階セレクトボックスの生成
+      let levelSelectOpts = '<option value="all">すべてのレベル (全範囲ランダム)</option>';
+      for(let i=1; i<=11; i++) {
+        levelSelectOpts += `<option value="${i}">レベル ${i}: ${levelNames11[i]}</option>`;
+      }
+      document.getElementById('eng-diff-select').innerHTML = levelSelectOpts;
+      document.getElementById('kobun-diff-select').innerHTML = levelSelectOpts;
 
       let df = '<option value="all">すべての難易度</option>';
-      for(let i=1; i<=20; i++) df += `<option value="${i}">レベル ${i}</option>`;
+      for(let i=1; i<=11; i++) df += `<option value="${i}">レベル ${i}: ${levelNames11[i]}</option>`;
       document.getElementById('detail-diff-filter').innerHTML = df;
 
       loadVocabData();
     }
 
     function initDictView() {
-      let levelOpts = '<option value="all">すべてのステージ（全件表示）</option>';
-      for(let i=1; i<=30; i++) levelOpts += `<option value="${i}">ステージ ${i}</option>`;
+      let levelOpts = '<option value="all">すべてのレベル（全件表示）</option>';
+      for(let i=1; i<=11; i++) {
+        levelOpts += `<option value="${i}">レベル ${i}: ${levelNames11[i]}</option>`;
+      }
       document.getElementById('dict-level-select').innerHTML = levelOpts;
       renderDictTable();
     }
@@ -331,22 +357,19 @@
 
       const container = document.getElementById('dict-container');
       if (!list.length) {
-        container.innerHTML = '<p style="color:var(--muted); margin-top:10px;">該当する単語がありません（データを読み込み中または空です）。</p>';
+        container.innerHTML = '<p style="color:var(--muted); margin-top:10px;">該当する単語がありません。</p>';
         return;
       }
 
       let html = `<p style="color:var(--muted); font-size:0.85rem; margin-bottom:10px;">表示件数: <strong>${list.length}件</strong></p>`;
-      html += `<table class="vocab-table"><thead><tr><th style="width:20%;">ターゲット</th><th style="width:15%;">何番目</th><th style="width:25%;">単語</th><th>意味</th></tr></thead><tbody>`;
+      html += `<table class="vocab-table"><thead><tr><th style="width:25%;">レベル</th><th style="width:15%;">何番目</th><th style="width:25%;">単語</th><th>意味</th></tr></thead><tbody>`;
       
-      // 描画が重くならないよう最大500件まで表示、または全件
       list.slice(0, 1000).forEach(item => {
-        html += `<tr><td><span class="badge badge-diff">${item.target}</span></td><td>No. ${item.no}</td><td><strong style="color:var(--accent);">${item.word}</strong></td><td>${item.meaning}</td></tr>`;
+        let diffName = levelNames11[item.difficulty] || `レベル ${item.difficulty}`;
+        html += `<tr><td><span class="badge badge-diff">${diffName}</span></td><td>No. ${item.no}</td><td><strong style="color:var(--accent);">${item.word}</strong></td><td>${item.meaning}</td></tr>`;
       });
       
       html += `</tbody></table>`;
-      if (list.length > 1000) {
-        html += `<p style="color:var(--muted); font-size:0.85rem; margin-top:10px; text-align:center;">※動作保護のため最初の1,000件を表示しています（全 ${list.length} 件）</p>`;
-      }
       container.innerHTML = html;
     }
 
@@ -375,7 +398,7 @@
       }
 
       if (!rawList.length) {
-        alert("該当する難易度の単語がありません。");
+        alert("該当するレベルの単語がありません。");
         return;
       }
 
@@ -387,24 +410,39 @@
       
       let label = type === 'eng' ? "🔤 英単語" : "📜 古文単語315";
       const sd = document.getElementById(selectId).value;
-      label += sd === 'all' ? " (全範囲ランダム)" : ` (ステージ ${sd})`;
+      label += sd === 'all' ? " (全範囲ランダム)" : ` (${levelNames11[sd] || 'レベル ' + sd})`;
       document.getElementById('vocab-category-label').innerText = label;
       showVocabCard();
     }
 
     function showVocabCard() {
       const item = vocabList[currentVocabIndex];
-      let diffTag = item.target ? ` [${item.target} No.${item.no}]` : "";
-      document.getElementById('vocab-progress').innerText = `単語 ${currentVocabIndex + 1} / ${vocabList.length}${diffTag}`;
+      let diffName = levelNames11[item.difficulty] || `レベル ${item.difficulty}`;
+      document.getElementById('vocab-progress').innerText = `単語 ${currentVocabIndex + 1} / ${vocabList.length} [${diffName}]`;
       document.getElementById('vocab-word-text').innerText = item.word;
-      document.getElementById('vocab-user-input').value = "";
+      
+      const inputField = document.getElementById('vocab-user-input');
+      const submitBtn = document.getElementById('vocab-submit-btn');
+      inputField.value = "";
+      inputField.disabled = false;
+      submitBtn.disabled = false;
+      submitBtn.innerText = "回答する（変更不可）";
+      
       document.getElementById('vocab-feedback-area').style.display = 'none';
-      document.getElementById('vocab-user-input').focus();
+      inputField.focus();
+    }
+
+    // ひらがな・カタカナ正規化関数（ひらがなだけでも正解できるようにする）
+    function hiraganaNormalize(text) {
+      if (!text) return "";
+      // カタカナをひらがなに変換
+      let hira = text.replace(/[\u30a1-\u30f6]/s, match => String.fromCharCode(match.charCodeAt(0) - 0x60));
+      return hira.trim().toLowerCase();
     }
 
     function checkNuance(userAns, correctAns) {
-      const cleanUser = userAns.trim().toLowerCase();
-      const cleanCorrect = correctAns.trim().toLowerCase();
+      const cleanUser = hiraganaNormalize(userAns);
+      const cleanCorrect = hiraganaNormalize(correctAns);
       
       if (!cleanUser) return false;
       if (cleanCorrect.includes(cleanUser) || cleanUser.includes(cleanCorrect)) return true;
@@ -426,15 +464,23 @@
     }
 
     function submitVocabAnswer() {
+      const inputField = document.getElementById('vocab-user-input');
+      const submitBtn = document.getElementById('vocab-submit-btn');
+      
+      // 【回答変更不可の仕様】ボタンを押した瞬間にテキストボックスとボタンを無効化（ロック）する
+      inputField.disabled = true;
+      submitBtn.disabled = true;
+      submitBtn.innerText = "回答確定（変更不可）";
+
       const item = vocabList[currentVocabIndex];
-      const userAns = document.getElementById('vocab-user-input').value;
+      const userAns = inputField.value;
       const isCorrect = checkNuance(userAns, item.meaning);
 
       saveRes(`vocab_${currentVocabType}`, item.word, isCorrect);
 
       const judge = document.getElementById('vocab-judge');
       if (isCorrect) {
-        judge.innerHTML = "⭕ 正解！（ニュアンス一致）";
+        judge.innerHTML = "⭕ 正解！（ひらがな・ニュアンス判定クリア）";
         judge.style.color = "#34d399";
       } else {
         judge.innerHTML = "❌ 不正解...";
@@ -450,7 +496,7 @@
       if (currentVocabIndex < vocabList.length) {
         showVocabCard();
       } else {
-        alert("お疲れ様でした！このステージの単語をすべて完了しました。");
+        alert("お疲れ様でした！このレベルの単語をすべて完了しました。");
         exitVocab();
       }
     }
@@ -468,7 +514,7 @@
         if (!res.ok) { alert("問題データがまだありません。"); return; }
         const all = await res.json();
         qData = diff === 'all' ? [...all] : all.filter(q => String(q.difficulty) === diff);
-        if (!qData.length) { alert("該当難易度の問題がありません。"); return; }
+        if (!qData.length) { alert("該当レベルの問題がありません。"); return; }
         qIdx = 0; score = 0;
         document.getElementById('quiz-select-card').style.display = 'none';
         document.getElementById('quiz-play-area').style.display = 'block';
@@ -479,9 +525,10 @@
     function showQ() {
       document.getElementById('quiz-feedback').style.display = 'none';
       const q = qData[qIdx];
+      let diffName = levelNames11[q.difficulty] || `レベル ${q.difficulty||1}`;
       document.getElementById('quiz-progress').innerText = `問題 ${qIdx+1} / ${qData.length}`;
       document.getElementById('quiz-score').innerText = `正解数: ${score}`;
-      document.getElementById('quiz-q-text').innerText = `[レベル ${q.difficulty||1}] ${q.q}`;
+      document.getElementById('quiz-q-text').innerText = `[${diffName}] ${q.q}`;
       const optDiv = document.getElementById('quiz-options'); optDiv.innerHTML = '';
       q.opts.forEach((o, i) => {
         const btn = document.createElement('button');
@@ -539,7 +586,7 @@
       });
 
       ['eng', 'kobun'].forEach(type => {
-        let name = type === 'eng' ? "🔤 英単語記述状況 (全4,694語)" : "📜 古文単語315記述状況";
+        let name = type === 'eng' ? "🔤 英単語記述状況 (11段階)" : "📜 古文単語315記述状況";
         let color = type === 'eng' ? "#3b82f6" : "#fbbf24";
         let subRes = h[`vocab_${type}`] || {}, sCount = Object.keys(subRes).length, cCount = Object.values(subRes).filter(v => v).length;
         const card = document.createElement('div');
@@ -548,7 +595,7 @@
         grid.appendChild(card);
       });
 
-  let tRate = totS ? Math.round((totC/totS)*100) : 0;
+      let tRate = totS ? Math.round((totC/totS)*100) : 0;
       document.getElementById('overall-summary-box').innerHTML = `<p>クイズ総解答数: <strong>${totS}問</strong> ｜ クイズ全体正答率: <strong style="color:var(--accent)">${tRate}%</strong></p>`;
     }
 
@@ -576,8 +623,9 @@
       data.forEach((q, idx) => {
         let id = q.id || idx, st = h[id];
         let badge = st === true ? '<span class="badge badge-correct">⭕ 過去正解</span>' : st === false ? '<span class="badge badge-wrong">❌ 過去不正解</span>' : '<span class="badge badge-unsolved">未挑戦</span>';
+        let diffName = levelNames11[q.difficulty] || `レベル ${q.difficulty||1}`;
         let opts = q.opts.map((o, i) => `<li style="${i===q.a?'font-weight:bold;color:#34d399':''}">${i+1}. ${o}</li>`).join('');
-        html += `<div class="card" style="margin-bottom:15px;background:#111827"><div><span class="badge badge-diff">レベル ${q.difficulty||1}</span> ${badge}</div><p style="margin-top:10px"><strong>Q. ${q.q}</strong></p><ul class="opts-list">${opts}</ul><div class="ans-box"><strong>💡 正解:</strong> ${q.a+1}. ${q.opts[q.a]}</div><div class="exp-box"><strong>📖 解説:</strong> ${q.exp||'なし'}</div></div>`;
+        html += `<div class="card" style="margin-bottom:15px;background:#111827"><div><span class="badge badge-diff">${diffName}</span> ${badge}</div><p style="margin-top:10px"><strong>Q. ${q.q}</strong></p><ul class="opts-list">${opts}</ul><div class="ans-box"><strong>💡 正解:</strong> ${q.a+1}. ${q.opts[q.a]}</div><div class="exp-box"><strong>📖 解説:</strong> ${q.exp||'なし'}</div></div>`;
       });
       c.innerHTML = html;
     }
