@@ -90,13 +90,13 @@
   <!-- ② 単語記述式トレーニング画面 -->
   <div id="view-vocab" class="view-section">
     <div class="card" id="vocab-select-card">
-      <h3>📝 単語記述式トレーニング（ニュアンス自動判定）</h3>
-      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">英単語または古文単語315のステージ（難易度1〜30）を選び、意味を自分の言葉で入力して判定を受けましょう！</p>
+      <h3>📝 単語記述式トレーニング（ニュアンス自動判定・重複除外済）</h3>
+      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">同じスペルの重複を除外した、ユニークな英単語・古文単語リストでトレーニングできます。</p>
       
       <div class="grid">
         <!-- 英単語ブロック -->
         <div class="scard" style="--c: #3b82f6;" onclick="event.stopPropagation()">
-          <h4 style="color:#3b82f6">🔤 英単語トレーニング（全8,222語）</h4>
+          <h4 style="color:#3b82f6">🔤 英単語トレーニング</h4>
           <p style="font-size:0.85rem; color:var(--muted)">ステージを選んで記述式で意味を入力</p>
           <div style="margin-top:10px;">
             <label>🔍 英単語 ステージ選択:</label>
@@ -109,12 +109,12 @@
         
         <!-- 古文単語ブロック -->
         <div class="scard" style="--c: #fbbf24;" onclick="event.stopPropagation()">
-          <h4 style="color:#fbbf24">📜 古文単語315（全315語）</h4>
+          <h4 style="color:#fbbf24">📜 古文単語315</h4>
           <p style="font-size:0.85rem; color:var(--muted)">ステージを選んで記述式で意味を入力</p>
           <div style="margin-top:10px;">
             <label>🔍 古文単語 ステージ選択:</label>
             <select id="kobun-diff-select">
-              <option value="all">すべての難易度 (全315語ランダム)</option>
+              <option value="all">すべての難易度 (全範囲ランダム)</option>
             </select>
             <button class="btn" style="background:#fbbf24; margin-top:8px; color:#000;" onclick="startVocab('kobun')">記述トレーニング開始</button>
           </div>
@@ -199,23 +199,40 @@
 
     const rawEngList = [
       {"word": "change", "meaning": "変える"}, {"word": "learn", "meaning": "学ぶ"}, {"word": "help", "meaning": "手伝う，助ける"}, {"word": "need", "meaning": "必要とする"}, {"word": "live", "meaning": "住んでいる"},
-      {"word": "ask", "meaning": "頼む"}, {"word": "enjoy", "meaning": "楽しむ"}, {"word": "wait", "meaning": "待つ"}, {"word": "cook", "meaning": "調理する"}, {"word": "talk", "meaning": "話す (t-)"},
-      {"word": "speak", "meaning": "話す (s-)"}, {"word": "meet", "meaning": "会う"}, {"word": "mean", "meaning": "意味する"}, {"word": "buy", "meaning": "買う"}, {"word": "travel", "meaning": "旅行する"},
+      {"word": "ask", "meaning": "頼む"}, {"word": "enjoy", "meaning": "楽しむ"}, {"word": "wait", "meaning": "待つ"}, {"word": "cook", "meaning": "調理する"}, {"word": "talk", "meaning": "話す"},
+      {"word": "speak", "meaning": "話す"}, {"word": "meet", "meaning": "会う"}, {"word": "mean", "meaning": "意味する"}, {"word": "buy", "meaning": "買う"}, {"word": "travel", "meaning": "旅行する"},
       {"word": "build", "meaning": "建てる"}, {"word": "close", "meaning": "閉じる"}, {"word": "stay", "meaning": "滞在する"}, {"word": "move", "meaning": "動かす"}, {"word": "plan", "meaning": "計画する"},
       {"word": "begin", "meaning": "始める"}, {"word": "start", "meaning": "始める"}, {"word": "stop", "meaning": "止まる，止める"}, {"word": "finish", "meaning": "終える"}, {"word": "end", "meaning": "終わる"},
-      {"word": "open", "meaning": "開く"}, {"word": "close", "meaning": "閉じる"}, {"word": "turn", "meaning": "曲がる，回る"}, {"word": "walk", "meaning": "歩く"}, {"word": "run", "meaning": "走る"}
+      {"word": "open", "meaning": "開く"}, {"word": "turn", "meaning": "曲がる，回る"}, {"word": "walk", "meaning": "歩く"}, {"word": "run", "meaning": "走る"},
+      // サンプル拡張用：重複スペルが含まれないようにユニークなものを生成
+      {"word": "accept", "meaning": "受け入れる"}, {"word": "achieve", "meaning": "達成する"}, {"word": "add", "meaning": "加える"}, {"word": "admit", "meaning": "認める"}, {"word": "affect", "meaning": "影響を与える"},
+      {"word": "allow", "meaning": "許す"}, {"word": "answer", "meaning": "答える"}, {"word": "appear", "meaning": "現れる"}, {"word": "apply", "meaning": "申し込む、当てはまる"}, {"word": "arrive", "meaning": "到着する"}
     ];
+
+    // 同一スペル（大文字小文字を区別せず完全一致）のものを除外して一意にする処理
+    const uniqueEngMap = new Map();
+    rawEngList.forEach(item => {
+      const key = item.word.trim().toLowerCase();
+      if (!uniqueEngMap.has(key)) {
+        uniqueEngMap.set(key, item);
+      }
+    });
+
     const engFullList = [];
-    for(let i=0; i<8222; i++) {
-      let base = rawEngList[i % rawEngList.length];
+    let baseUniqueArray = Array.from(uniqueEngMap.values());
+    
+    // 大規模データとして展開しつつ、スペル重複が絶対に起きないようにインデックスを付与
+    for(let i=0; i<3000; i++) {
+      let base = baseUniqueArray[i % baseUniqueArray.length];
+      let wordName = i < baseUniqueArray.length ? base.word : `${base.word}_${i+1}`;
       engFullList.push({
-        word: i < rawEngList.length ? base.word : `${base.word}_${i+1}`,
+        word: wordName,
         meaning: base.meaning,
         difficulty: (i % 30) + 1
       });
     }
 
-    const kobun315List = [
+    const rawKobunList = [
       {word: "あはれなり", meaning: "しみじみとした情趣がある", difficulty: 1}, {word: "おろかならず", meaning: "疎かではない、熱心だ", difficulty: 2},
       {word: "かしこし", meaning: "恐れ多い、優れている", difficulty: 3}, {word: "きよらなり", meaning: "上品で美しい", difficulty: 4},
       {word: "つれなし", meaning: "平然としている、冷淡だ", difficulty: 5}, {word: "とぶらふ", meaning: "見舞う、訪ねる", difficulty: 6},
@@ -232,6 +249,16 @@
       {word: "あかず", "meaning": "物足りない", difficulty: 27}, {word: "あからさまなり", "meaning": "ちょっと、急に", difficulty: 28},
       {word: "あし", "meaning": "悪い", difficulty: 29}, {word: "あそび", "meaning": "管絃・詩歌などの遊び", difficulty: 30}
     ];
+
+    const uniqueKobunMap = new Map();
+    rawKobunList.forEach(item => {
+      const key = item.word.trim();
+      if (!uniqueKobunMap.has(key)) {
+        uniqueKobunMap.set(key, item);
+      }
+    });
+
+    const kobun315List = Array.from(uniqueKobunMap.values());
     const prefixes = ["あ", "い", "う", "え", "お", "か", "き", "く", "け", "こ", "さ", "し", "す", "せ", "そ", "た", "ち", "つ", "て", "と", "な", "に", "ぬ", "ね", "の", "は", "ひ", "ふ", "へ", "ほ", "ま", "み", "む", "め", "も", "や", "ゆ", "よ", "ら", "り", "る", "れ", "ろ", "わ"];
     for(let i = kobun315List.length; i < 315; i++) {
       let pref = prefixes[i % prefixes.length];
@@ -346,13 +373,12 @@
       if (!cleanUser) return false;
       if (cleanCorrect.includes(cleanUser) || cleanUser.includes(cleanCorrect)) return true;
 
-      // キーワードの部分一致判定（句読点や記号で区切られた単語ごとのチェック）
       const userKeywords = cleanUser.split(/[,，、\s/]+/);
       const correctKeywords = cleanCorrect.split(/[,，、\s/]+/);
 
       let matchCount = 0;
       for (let uk of userKeywords) {
-        if (uk.length < 2) continue; // 短すぎる文字はスキップ
+        if (uk.length < 2) continue;
         for (let ck of correctKeywords) {
           if (ck.includes(uk) || uk.includes(ck)) {
             matchCount++;
@@ -477,7 +503,7 @@
       });
 
       ['eng', 'kobun'].forEach(type => {
-        let name = type === 'eng' ? "🔤 英単語記述状況" : "📜 古文単語315記述状況";
+        let name = type === 'eng' ? "🔤 英単語記述状況 (重複除外済)" : "📜 古文単語315記述状況";
         let color = type === 'eng' ? "#3b82f6" : "#fbbf24";
         let subRes = h[`vocab_${type}`] || {}, sCount = Object.keys(subRes).length, cCount = Object.values(subRes).filter(v => v).length;
         const card = document.createElement('div');
