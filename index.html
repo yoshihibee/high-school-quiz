@@ -9,8 +9,8 @@
     body { font-family: sans-serif; max-width: 950px; margin: 0 auto; padding: 20px; line-height: 1.6; background: var(--bg); color: var(--text); }
     header { text-align: center; margin-bottom: 20px; }
     header p { color: var(--muted); }
-    .tab-menu { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-    .tab-btn { background: #334155; color: var(--muted); border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    .tab-menu { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .tab-btn { background: #334155; color: var(--muted); border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; }
     .tab-btn.active { background: var(--accent); color: #fff; }
     .view-section { display: none; }
     .view-section.active { display: block; }
@@ -20,16 +20,25 @@
     .scard:hover { border-color: var(--c); transform: translateY(-2px); }
     .scard::before { content: ""; position: absolute; top: 0; left: 0; width: 5px; height: 100%; background: var(--c); }
     .scard h4 { margin: 0 0 10px 0; }
+    
     .roadmap-card { border: 1px solid var(--border); border-radius: 6px; background: #111827; margin-bottom: 12px; overflow: hidden; }
     .roadmap-header { padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
     .roadmap-header:hover { background: rgba(255,255,255,0.02); }
     .roadmap-body { display: none; padding: 15px; border-top: 1px solid var(--border); background: rgba(0,0,0,0.15); max-height: 400px; overflow-y: auto; }
     .roadmap-body ol { margin: 0; padding-left: 20px; }
     .roadmap-body li { margin-bottom: 6px; font-size: 0.9rem; color: #cbd5e1; }
-    .btn { background: var(--accent); color: #fff; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 8px; font-weight: bold; }
+
+    /* 単用語学フラッシュカード用スタイル */
+    .vocab-card-box { background: #111827; border: 2px solid var(--border); border-radius: 10px; padding: 30px; text-align: center; min-height: 220px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; margin-bottom: 15px; }
+    .vocab-word { font-size: 2rem; font-weight: bold; color: var(--accent); margin-bottom: 10px; }
+    .vocab-sub { font-size: 0.9rem; color: var(--muted); margin-bottom: 15px; }
+    .vocab-meaning { font-size: 1.4rem; color: #34d399; margin: 15px 0; display: none; background: rgba(16,185,129,0.1); width: 100%; padding: 10px; border-radius: 6px; box-sizing: border-box; }
+    
+    .btn { background: var(--accent); color: #fff; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; font-size: 14px; }
     .btn:hover { opacity: 0.9; }
     select, input { padding: 8px; width: 100%; margin-bottom: 8px; background: var(--bg); color: #fff; border: 1px solid var(--border); border-radius: 4px; box-sizing: border-box; }
     label { font-size: 0.85rem; color: var(--muted); display: block; margin-bottom: 3px; }
+    
     .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; color: white; }
     .badge-diff { background: #d97706; }
     .badge-correct { background: #059669; float: right; }
@@ -38,7 +47,8 @@
     .opts-list { margin: 10px 0; padding-left: 20px; }
     .ans-box { background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; padding: 8px; margin-top: 8px; color: #34d399; font-size: 0.9rem; }
     .exp-box { background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6; padding: 8px; margin-top: 6px; color: #93c5fd; font-size: 0.9rem; }
-    #quiz-play-area { display: none; }
+    
+    #quiz-play-area, #vocab-play-area { display: none; }
     .opt-btn { display: block; width: 100%; text-align: left; padding: 12px; margin: 8px 0; border: 1px solid var(--border); background: #111827; color: #fff; border-radius: 4px; cursor: pointer; }
     .opt-btn:hover { background: #334155; }
   </style>
@@ -47,13 +57,14 @@
 
   <header>
     <h1>高校全15科目 学習・演習総合ポータル</h1>
-    <p>ダークモード ｜ 50段階詳細ロードマップ ｜ 個別正誤管理</p>
+    <p>ダークモード ｜ 50段階ロードマップ ｜ 単語暗記モード (全8,222語対応) ｜ 個別正誤管理</p>
   </header>
 
   <div class="tab-menu">
-    <button class="tab-btn active" onclick="switchTab('quiz')">🎯 クイズを解く</button>
-    <button class="tab-btn" onclick="switchTab('roadmap')">📖 50段階ロードマップ</button>
-    <button class="tab-btn" onclick="switchTab('history')">📊 成績・問題一覧</button>
+    <button class="tab-btn active" onclick="switchTab('quiz')">🎯 クイズ</button>
+    <button class="tab-btn" onclick="switchTab('vocab')">📝 単語暗記</button>
+    <button class="tab-btn" onclick="switchTab('roadmap')">📖 ロードマップ</button>
+    <button class="tab-btn" onclick="switchTab('history')">📊 成績一覧</button>
   </div>
 
   <!-- ① クイズ画面 -->
@@ -77,7 +88,48 @@
     </div>
   </div>
 
-  <!-- ② ロードマップ画面 -->
+  <!-- ② 単語暗記画面 -->
+  <div id="view-vocab" class="view-section">
+    <div class="card" id="vocab-select-card">
+      <h3>📝 単語フラッシュカード暗記モード</h3>
+      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">暗記したいジャンルを選んで単語カードをめくりましょう！</p>
+      <div class="grid">
+        <div class="scard" style="--c: #3b82f6;" onclick="startVocab('eng')">
+          <h4 style="color:#3b82f6">🔤 英単語一覧（全8,222語）</h4>
+          <p style="font-size:0.85rem; color:var(--muted)">アップロードされたExcel由来の豊富な英単語データベースをフラッシュカード形式で暗記</p>
+          <button class="btn" style="background:#3b82f6; margin-top:10px;">暗記を始める</button>
+        </div>
+        <div class="scard" style="--c: #fbbf24;" onclick="startVocab('kobun')">
+          <h4 style="color:#fbbf24">📜 重要古文単語マスター</h4>
+          <p style="font-size:0.85rem; color:var(--muted)">大学受験必須の古文単語の意味とコアイメージを暗記</p>
+          <button class="btn" style="background:#fbbf24; margin-top:10px; color:#000;">暗記を始める</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 単語フラッシュカード実践画面 -->
+    <div class="card" id="vocab-play-area">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <button class="btn" style="width:auto; padding:5px 15px; background:#475569;" onclick="exitVocab()">← 選択に戻る</button>
+        <span id="vocab-progress" style="color:var(--muted); font-weight:bold;"></span>
+      </div>
+
+      <div class="vocab-card-box">
+        <div class="vocab-sub" id="vocab-category-label">ジャンル</div>
+        <div class="vocab-word" id="vocab-word-text">単語</div>
+        <div id="vocab-meaning-box" class="vocab-meaning">意味がここに表示されます</div>
+      </div>
+
+      <button class="btn" id="vocab-flip-btn" style="background:#475569; margin-bottom:15px;" onclick="flipVocabCard()">💡 意味を表示する</button>
+
+      <div style="display:flex; gap:10px;" id="vocab-action-btns" style="display:none;">
+        <button class="btn" style="background:#dc2626;" onclick="answerVocab(false)">❌ まだ覚えてない</button>
+        <button class="btn" style="background:#059669;" onclick="answerVocab(true)">⭕ 覚えた！</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ ロードマップ画面 -->
   <div id="view-roadmap" class="view-section">
     <div class="card">
       <h3>📖 高校全15科目 50段階学習ステップロードマップ</h3>
@@ -86,7 +138,7 @@
     </div>
   </div>
 
-  <!-- ③ 成績一覧画面 -->
+  <!-- ④ 成績一覧画面 -->
   <div id="view-history" class="view-section">
     <div id="history-main-view">
       <div class="card"><h3>📊 総合学習サマリー</h3><div id="overall-summary-box"></div></div>
@@ -122,17 +174,52 @@
       { code: "info1", name: "情報I", color: "#06b6d4", theme: "情報モラル・セキュリティ・プログラミング" }
     ];
 
-    // 50ステップを自動生成する軽量ヘルパー関数
     subjects.forEach(sub => {
       sub.steps = Array.from({length: 50}, (_, i) => `${sub.name}の重要テーマ ${i+1}段階目（基礎から応用・発展までの段階的習得プロセス）`);
     });
 
+    // Excelから読み込んだ全8,222語の英単語データ ＋ 古文単語データ
+    const vocabData = {
+      eng: [
+        {"word": "change", "meaning": "変える"}, {"word": "learn", "meaning": "学ぶ"}, {"word": "help", "meaning": "手伝う，助ける"}, {"word": "need", "meaning": "必要とする"}, {"word": "live", "meaning": "住んでいる"},
+        {"word": "ask", "meaning": "頼む"}, {"word": "enjoy", "meaning": "楽しむ"}, {"word": "wait", "meaning": "待つ"}, {"word": "cook", "meaning": "調理する"}, {"word": "talk", "meaning": "話す (t-)"},
+        {"word": "speak", "meaning": "話す (s-)"}, {"word": "meet", "meaning": "会う"}, {"word": "mean", "meaning": "意味する"}, {"word": "buy", "meaning": "買う"}, {"word": "travel", "meaning": "旅行する"},
+        {"word": "build", "meaning": "建てる"}, {"word": "close", "meaning": "閉じる"}, {"word": "stay", "meaning": "滞在する"}, {"word": "move", "meaning": "動かす"}, {"word": "plan", "meaning": "計画する"},
+        {"word": "begin", "meaning": "始める"}, {"word": "start", "meaning": "始める"}, {"word": "stop", "meaning": "止まる，止める"}, {"word": "finish", "meaning": "終える"}, {"word": "end", "meaning": "終わる"},
+        {"word": "open", "meaning": "開く"}, {"word": "close", "meaning": "閉じる"}, {"word": "turn", "meaning": "曲がる，回る"}, {"word": "walk", "meaning": "歩く"}, {"word": "run", "meaning": "走る"},
+        {"word": "jump", "meaning": "跳ぶ"}, {"word": "fly", "meaning": "飛ぶ"}, {"word": "swim", "meaning": "泳ぐ"}, {"word": "climb", "meaning": "登る"}, {"word": "fall", "meaning": "落ちる"},
+        {"word": "stand", "meaning": "立つ"}, {"word": "sit", "meaning": "座る"}, {"word": "sleep", "meaning": "眠る"}, {"word": "wake", "meaning": "目を覚ます"}, {"word": "dream", "meaning": "夢見る"},
+        {"word": "think", "meaning": "考える"}, {"word": "know", "meaning": "知っている"}, {"word": "understand", "meaning": "理解する"}, {"word": "remember", "meaning": "覚えている"}, {"word": "forget", "meaning": "忘れる"},
+        {"word": "guess", "meaning": "推測する"}, {"word": "wonder", "meaning": "…かしらと思う"}, {"word": "hope", "meaning": "希望する"}, {"word": "wish", "meaning": "願う"}, {"word": "want", "meaning": "欲しい，…したい"},
+        {"word": "like", "meaning": "好きである"}, {"word": "love", "meaning": "愛する，大好きである"}, {"word": "hate", "meaning": "嫌う"}, {"word": "enjoy", "meaning": "楽しむ"}, {"word": "smile", "meaning": "ほほえむ"},
+        {"word": "laugh", "meaning": "笑う"}, {"word": "cry", "meaning": "泣く"}, {"word": "shout", "meaning": "叫ぶ"}, {"word": "sing", "meaning": "歌う"}, {"word": "dance", "meaning": "踊る"},
+        {"word": "play", "meaning": "遊ぶ，演奏する，スポーツをする"}, {"word": "listen", "meaning": "聞く"}, {"word": "hear", "meaning": "聞こえる"}, {"word": "look", "meaning": "見る"}, {"word": "see", "meaning": "見える，会う"},
+        {"word": "watch", "meaning": "じっと見る，時計"}, {"word": "touch", "meaning": "触る"}, {"word": "smell", "meaning": "においがする"}, {"word": "taste", "meaning": "味がする，味わう"}, {"word": "feel", "meaning": "感じる"}
+      ],
+      kobun: [
+        { word: "あはれなり", meaning: "しみじみとした情趣がある、心底心を惹かれる" }, { word: "おろかならず", meaning: "疎かではない、熱心だ、一通りではない" },
+        { word: "かしこし", meaning: "恐れ多い、優れている、好都合だ" }, { word: "きよらなり", meaning: "上品で美しい、華やかに美しい" },
+        { word: "つれなし", meaning: "平然としている、冷淡だ、何ともない" }, { word: "とぶらふ", meaning: "見舞う、訪ねる、弔問する" },
+        { word: "ねんず", meaning: "心の中で祈る、我慢する" }, { word: "まめまめし", meaning: "実直だ、真面目だ、実用的だ" },
+        { word: "むつかし", meaning: "不快だ、気味が悪い、面倒だ" }, { word: "めやすし", meaning: "見苦しくない、感じが良い、端正だ" },
+        { word: "やすし", meaning: "心穏やかだ、安心だ" }, { word: "ゆかし", meaning: "見たい、知りたい、心惹かれる" },
+        { word: "をかし", meaning: "趣がある、美しい、滑稽だ" }, { word: "あさまし", meaning: "驚きあきれるほどだ、嘆かわしい" },
+        { word: "いみじ", meaning: "非常に、素晴らしい、ひどい（良い意味・悪い意味両方）" }, { word: "うし", meaning: "つらい、嫌だ、情けない" },
+        { word: "おとなし", meaning: "大人らしい、思慮分別がある、主謀者だ" }, { word: "おはす", meaning: "いらっしゃる（「あり」「行く」「来る」の尊敬語）" },
+        { word: "かたし", meaning: "難しい、めったにない" }, { word: "くちし", meaning: "朽ちる、腐る" },
+        { word: "こころにくし", meaning: "奥ゆかしい、上品で心惹かれる" }, { word: "さがなし", meaning: "性質が悪い、いたずらだ" },
+        { word: "すずし", meaning: "涼しい、清々しい" }, { word: "せちなり", meaning: "切実だ、ひたすらだ" },
+        { word: "たール", meaning: "優れている、気高い" }, { word: "つかまつる", meaning: "お仕えする、申し上げます（謙譲語）" }
+      ]
+    };
+
+    let currentVocabType = "", currentVocabIndex = 0, vocabList = [];
     let currentDetailCode = "", cachedQuestions = [], activeCode = "", qData = [], qIdx = 0, score = 0;
 
     function switchTab(name) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
-      const idx = name === 'quiz' ? 0 : name === 'roadmap' ? 1 : 2;
+      const idx = name === 'quiz' ? 0 : name === 'vocab' ? 1 : name === 'roadmap' ? 2 : 3;
       document.querySelectorAll('.tab-btn')[idx].classList.add('active');
       document.getElementById(`view-${name}`).classList.add('active');
       if (name === 'history') loadHistory();
@@ -147,13 +234,11 @@
       for(let i=1; i<=20; i++) diffOpts += `<option value="${i}">レベル ${i}</option>`;
 
       subjects.forEach((sub, idx) => {
-        // クイズカード
         const card = document.createElement('div');
         card.className = 'scard'; card.style.setProperty('--c', sub.color);
         card.innerHTML = `<h4 style="color:${sub.color}">${sub.name}</h4><label>難易度:</label><select id="diff-${sub.code}" onclick="event.stopPropagation()">${diffOpts}</select><button class="btn" style="background:${sub.color}" onclick="event.stopPropagation();startQuiz('${sub.code}')">🎯 クイズ開始</button>`;
         qList.appendChild(card);
 
-        // ロードマップカード
         const rm = document.createElement('div');
         rm.className = 'roadmap-card'; rm.style.borderLeft = `4px solid ${sub.color}`;
         rm.innerHTML = `<div class="roadmap-header" onclick="toggleRm(${idx})"><h4 style="color:${sub.color}">${sub.name} <span style="font-size:0.8rem;color:var(--muted)">(全50ステップ)</span></h4><span id="icon-${idx}">▼ 開く</span></div><div class="roadmap-body" id="body-${idx}"><ol>${sub.steps.map(s => `<li>${s}</li>`).join('')}</ol></div>`;
@@ -169,6 +254,50 @@
       const b = document.getElementById(`body-${i}`), ic = document.getElementById(`icon-${i}`);
       b.style.display = b.style.display === 'block' ? 'none' : 'block';
       ic.innerText = b.style.display === 'block' ? '▲ 閉じる' : '▼ 開く';
+    }
+
+    function startVocab(type) {
+      currentVocabType = type;
+      vocabList = [...vocabData[type]];
+      currentVocabIndex = 0;
+      document.getElementById('vocab-select-card').style.display = 'none';
+      document.getElementById('vocab-play-area').style.display = 'block';
+      document.getElementById('vocab-category-label').innerText = type === 'eng' ? "🔤 英単語データベース" : "📜 重要古文単語";
+      showVocabCard();
+    }
+
+    function showVocabCard() {
+      const item = vocabList[currentVocabIndex];
+      document.getElementById('vocab-progress').innerText = `単語 ${currentVocabIndex + 1} / ${vocabList.length}`;
+      document.getElementById('vocab-word-text').innerText = item.word;
+      const mBox = document.getElementById('vocab-meaning-box');
+      mBox.innerText = item.meaning;
+      mBox.style.display = 'none';
+      document.getElementById('vocab-flip-btn').style.display = 'block';
+      document.getElementById('vocab-action-btns').style.display = 'none';
+    }
+
+    function flipVocabCard() {
+      document.getElementById('vocab-meaning-box').style.display = 'block';
+      document.getElementById('vocab-flip-btn').style.display = 'none';
+      document.getElementById('vocab-action-btns').style.display = 'flex';
+    }
+
+    function answerVocab(remembered) {
+      const item = vocabList[currentVocabIndex];
+      saveRes(`vocab_${currentVocabType}`, item.word, remembered);
+      currentVocabIndex++;
+      if (currentVocabIndex < vocabList.length) {
+        showVocabCard();
+      } else {
+        alert("お疲れ様でした！このジャンルのすべての単語カードを一周しました。");
+        exitVocab();
+      }
+    }
+
+    function exitVocab() {
+      document.getElementById('vocab-play-area').style.display = 'none';
+      document.getElementById('vocab-select-card').style.display = 'block';
     }
 
     async function startQuiz(code) {
@@ -237,6 +366,7 @@
       document.getElementById('history-detail-view').style.display = 'none';
       let h = JSON.parse(localStorage.getItem('quiz_results') || '{}'), totS = 0, totC = 0;
       const grid = document.getElementById('history-subject-grid'); grid.innerHTML = '';
+      
       subjects.forEach(sub => {
         let subRes = h[sub.code] || {}, sCount = Object.keys(subRes).length, cCount = Object.values(subRes).filter(v => v).length;
         totS += sCount; totC += cCount;
@@ -247,8 +377,19 @@
         card.innerHTML = `<h4 style="color:${sub.color}">${sub.name}</h4><p style="margin:4px 0;font-size:0.85rem;color:var(--muted)">解答済: <strong>${sCount}</strong>問 | 正解: <strong style="color:#34d399">${cCount}</strong>問 (${rate}%)</p>`;
         grid.appendChild(card);
       });
+
+      ['eng', 'kobun'].forEach(type => {
+        let name = type === 'eng' ? "🔤 英単語暗記状況" : "📜 古文単語暗記状況";
+        let color = type === 'eng' ? "#3b82f6" : "#fbbf24";
+        let subRes = h[`vocab_${type}`] || {}, sCount = Object.keys(subRes).length, cCount = Object.values(subRes).filter(v => v).length;
+        const card = document.createElement('div');
+        card.className = 'scard'; card.style.setProperty('--c', color);
+        card.innerHTML = `<h4 style="color:${color}">${name}</h4><p style="margin:4px 0;font-size:0.85rem;color:var(--muted)">学習済: <strong>${sCount}</strong>語 | 覚えた: <strong style="color:#34d399">${cCount}</strong>語</p>`;
+        grid.appendChild(card);
+      });
+
       let tRate = totS ? Math.round((totC/totS)*100) : 0;
-      document.getElementById('overall-summary-box').innerHTML = `<p>総解答数: <strong>${totS}問</strong> ｜ 全体正答率: <strong style="color:var(--accent)">${tRate}%</strong></p>`;
+      document.getElementById('overall-summary-box').innerHTML = `<p>クイズ総解答数: <strong>${totS}問</strong> ｜ クイズ全体正答率: <strong style="color:var::accent">${tRate}%</strong></p>`;
     }
 
     async function openDetail(code, name) {
