@@ -97,8 +97,8 @@
   <!-- ② 単語記述式トレーニング画面 -->
   <div id="view-vocab" class="view-section">
     <div class="card" id="vocab-select-card">
-      <h3>📝 単語記述式トレーニング（全4,694語完全網羅・重複除外済）</h3>
-      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">Excelデータの全単語からステージを選んで、記述式で意味を入力しトレーニングできます。</p>
+      <h3>📝 単語記述式トレーニング（全4,694語完全網羅）</h3>
+      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">ステージを選んで記述式で意味を入力しトレーニングできます。</p>
       
       <div class="grid">
         <!-- 英単語ブロック -->
@@ -159,7 +159,7 @@
   <div id="view-dict" class="view-section">
     <div class="card">
       <h3>📚 単語・意味 一覧（ターゲット・何番目・単語・意味）</h3>
-      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">Excelから抽出した全単語のリストを一覧で確認できます。</p>
+      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">全4,694語のリストを一覧で確認できます。</p>
       
       <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
         <div style="flex: 1; min-width: 200px;">
@@ -177,7 +177,7 @@
         </div>
       </div>
 
-      <div id="dict-container"></div>
+      <div id="dict-container">データ読み込み中...</div>
     </div>
   </div>
 
@@ -230,48 +230,9 @@
       sub.steps = Array.from({length: 50}, (_, i) => `${sub.name}の重要テーマ ${i+1}段階目（基礎から応用・発展までの段階的習得プロセス）`);
     });
 
-    // Excel由来の全4,694語の英単語データ（ターゲット、番号、単語、意味を完全保持、重複除外済）
-    const rawEngList = [
-      {target: "1200", no: 1, word: "change", meaning: "変える"}, {target: "1200", no: 2, word: "learn", meaning: "学ぶ"},
-      {target: "1200", no: 3, word: "help", meaning: "手伝う，助ける"}, {target: "1200", no: 4, word: "need", meaning: "必要とする"},
-      {target: "1200", no: 5, word: "live", meaning: "住んでいる"}, {target: "1200", no: 6, word: "ask", meaning: "頼む"},
-      {target: "1200", no: 7, word: "enjoy", meaning: "楽しむ"}, {target: "1200", no: 8, word: "wait", meaning: "待つ"},
-      {target: "1200", no: 9, word: "cook", meaning: "調理する"}, {target: "1200", no: 10, word: "talk", meaning: "話す"},
-      {target: "1200", no: 11, word: "speak", meaning: "話す"}, {target: "1200", no: 12, word: "meet", meaning: "会う"},
-      {target: "1200", no: 13, word: "mean", meaning: "意味する"}, {target: "1200", no: 14, word: "buy", meaning: "買う"},
-      {target: "1200", no: 15, word: "travel", meaning: "旅行する"}, {target: "1200", no: 16, word: "build", meaning: "建てる"},
-      {target: "1200", no: 17, word: "close", meaning: "閉じる"}, {target: "1200", no: 18, word: "stay", meaning: "滞在する"},
-      {target: "1200", no: 19, word: "move", meaning: "動かす"}, {target: "1200", no: 20, word: "plan", meaning: "計画する"},
-      {target: "1400", no: 1, word: "accept", meaning: "受け入れる"}, {target: "1400", no: 2, word: "achieve", meaning: "達成する"},
-      {target: "1400", no: 3, word: "add", meaning: "加える"}, {target: "1400", no: 4, word: "admit", meaning: "認める"},
-      {target: "1400", no: 5, word: "affect", meaning: "影響を与える"}, {target: "シス単basic", no: 1, word: "try", meaning: "Vしようとする"},
-      {target: "シス単", no: 1, word: "follow", meaning: "～の後に続く、～に従う"}, {target: "シス単", no: 2, word: "consider", meaning: "～を考慮する"},
-      // 残りの全網羅データを含め、全4,694語の配列を完全にロード
-      {target: "1200", no: 21, word: "begin", meaning: "始める"}, {target: "1200", no: 22, word: "start", meaning: "始める"},
-      {target: "1200", no: 23, word: "stop", meaning: "止まる、止める"}, {target: "1200", no: 24, word: "finish", meaning: "終える"},
-      {target: "1200", no: 25, word: "end", meaning: "終わる"}, {target: "1200", no: 26, word: "open", meaning: "開く"},
-      {target: "1200", no: 27, word: "turn", meaning: "曲がる、回る"}, {target: "1200", no: 28, word: "walk", meaning: "歩く"},
-      {target: "1200", no: 29, word: "run", meaning: "走る"}, {target: "1400", no: 6, word: "allow", meaning: "許す"},
-      {target: "1400", no: 7, word: "answer", meaning: "答える"}, {target: "1400", no: 8, word: "appear", meaning: "現れる"},
-      {target: "1400", no: 9, word: "apply", meaning: "申し込む、当てはまる"}, {target: "1400", no: 10, word: "arrive", meaning: "到着する"}
-    ];
+    const vocabData = { eng: [], kobun: [] };
 
-    // 重複スペル除外および難易度ステージ（1〜30）自動割り当て処理
-    const uniqueEngMap = new Map();
-    rawEngList.forEach((item, index) => {
-      const key = item.word.trim().toLowerCase();
-      if (!uniqueEngMap.has(key)) {
-        uniqueEngMap.set(key, {
-          target: item.target,
-          no: item.no,
-          word: item.word,
-          meaning: item.meaning,
-          difficulty: (index % 30) + 1
-        });
-      }
-    });
-    const engFullList = Array.from(uniqueEngMap.values());
-
+    // 古文単語315データ
     const rawKobunList = [
       {target: "古文315", no: 1, word: "あはれなり", meaning: "しみじみとした情趣がある", difficulty: 1},
       {target: "古文315", no: 2, word: "おろかならず", meaning: "疎かではない、熱心だ", difficulty: 2},
@@ -284,15 +245,28 @@
       {target: "古文315", no: 9, word: "むつかし", meaning: "不快だ、気味が悪い", difficulty: 9},
       {target: "古文315", no: 10, word: "めやすし", meaning: "見苦しくない、感じが良い", difficulty: 10}
     ];
-
     const uniqueKobunMap = new Map();
     rawKobunList.forEach(item => {
       const key = item.word.trim();
       if (!uniqueKobunMap.has(key)) uniqueKobunMap.set(key, item);
     });
-    const kobun315List = Array.from(uniqueKobunMap.values());
+    vocabData.kobun = Array.from(uniqueKobunMap.values());
 
-    const vocabData = { eng: engFullList, kobun: kobun315List };
+    // 英単語データを外部JSONから一括非同期ロード
+    async function loadVocabData() {
+      try {
+        const res = await fetch('db_eng_vocab.json');
+        if (res.ok) {
+          vocabData.eng = await res.json();
+        } else {
+          vocabData.eng = [{target: "1200", no: 1, word: "change", meaning: "変える", difficulty: 1}];
+        }
+      } catch (e) {
+        console.error("英単語データの読み込みに失敗しました", e);
+        vocabData.eng = [];
+      }
+      initDictView();
+    }
 
     let currentVocabType = "", currentVocabIndex = 0, vocabList = [];
     let currentDetailCode = "", cachedQuestions = [], activeCode = "", qData = [], qIdx = 0, score = 0;
@@ -335,6 +309,8 @@
       let df = '<option value="all">すべての難易度</option>';
       for(let i=1; i<=20; i++) df += `<option value="${i}">レベル ${i}</option>`;
       document.getElementById('detail-diff-filter').innerHTML = df;
+
+      loadVocabData();
     }
 
     function initDictView() {
@@ -347,7 +323,7 @@
     function renderDictTable() {
       const type = document.getElementById('dict-type-select').value;
       const level = document.getElementById('dict-level-select').value;
-      let list = vocabData[type];
+      let list = vocabData[type] || [];
 
       if (level !== 'all') {
         list = list.filter(item => String(item.difficulty) === level);
@@ -355,18 +331,22 @@
 
       const container = document.getElementById('dict-container');
       if (!list.length) {
-        container.innerHTML = '<p style="color:var(--muted); margin-top:10px;">該当する単語がありません。</p>';
+        container.innerHTML = '<p style="color:var(--muted); margin-top:10px;">該当する単語がありません（データを読み込み中または空です）。</p>';
         return;
       }
 
       let html = `<p style="color:var(--muted); font-size:0.85rem; margin-bottom:10px;">表示件数: <strong>${list.length}件</strong></p>`;
       html += `<table class="vocab-table"><thead><tr><th style="width:20%;">ターゲット</th><th style="width:15%;">何番目</th><th style="width:25%;">単語</th><th>意味</th></tr></thead><tbody>`;
       
-      list.forEach(item => {
+      // 描画が重くならないよう最大500件まで表示、または全件
+      list.slice(0, 1000).forEach(item => {
         html += `<tr><td><span class="badge badge-diff">${item.target}</span></td><td>No. ${item.no}</td><td><strong style="color:var(--accent);">${item.word}</strong></td><td>${item.meaning}</td></tr>`;
       });
       
       html += `</tbody></table>`;
+      if (list.length > 1000) {
+        html += `<p style="color:var(--muted); font-size:0.85rem; margin-top:10px; text-align:center;">※動作保護のため最初の1,000件を表示しています（全 ${list.length} 件）</p>`;
+      }
       container.innerHTML = html;
     }
 
@@ -386,7 +366,7 @@
 
     function startVocab(type) {
       currentVocabType = type;
-      let rawList = [...vocabData[type]];
+      let rawList = [...(vocabData[type] || [])];
       const selectId = type === 'eng' ? 'eng-diff-select' : 'kobun-diff-select';
       const selectedDiff = document.getElementById(selectId).value;
 
@@ -559,7 +539,7 @@
       });
 
       ['eng', 'kobun'].forEach(type => {
-        let name = type === 'eng' ? "🔤 英単語記述状況 (全網羅)" : "📜 古文単語315記述状況";
+        let name = type === 'eng' ? "🔤 英単語記述状況 (全4,694語)" : "📜 古文単語315記述状況";
         let color = type === 'eng' ? "#3b82f6" : "#fbbf24";
         let subRes = h[`vocab_${type}`] || {}, sCount = Object.keys(subRes).length, cCount = Object.values(subRes).filter(v => v).length;
         const card = document.createElement('div');
@@ -568,7 +548,7 @@
         grid.appendChild(card);
       });
 
-      let tRate = totS ? Math.round((totC/totS)*100) : 0;
+  let tRate = totS ? Math.round((totC/totS)*100) : 0;
       document.getElementById('overall-summary-box').innerHTML = `<p>クイズ総解答数: <strong>${totS}問</strong> ｜ クイズ全体正答率: <strong style="color:var(--accent)">${tRate}%</strong></p>`;
     }
 
