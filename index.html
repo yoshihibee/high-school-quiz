@@ -18,8 +18,8 @@
     header p { color: var(--text-muted); }
 
     /* タブ切り替えメニュー */
-    .tab-menu { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; }
-    .tab-btn { background: #334155; color: var(--text-muted); border: none; padding: 10px 25px; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: bold; transition: 0.2s; }
+    .tab-menu { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
+    .tab-btn { background: #334155; color: var(--text-muted); border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; transition: 0.2s; }
     .tab-btn.active { background: var(--accent); color: #fff; }
 
     .view-section { display: none; }
@@ -31,6 +31,11 @@
     .subject-card:hover { border-color: var(--card-accent, #3b82f6); transform: translateY(-2px); }
     .subject-card::before { content: ""; position: absolute; top: 0; left: 0; width: 5px; height: 100%; background: var(--card-accent, #3b82f6); }
     .subject-card h4 { margin: 0 0 10px 0; font-size: 1.1rem; }
+
+    .roadmap-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; margin-top: 15px; }
+    .roadmap-card { border: 1px solid var(--border-color); padding: 15px; border-radius: 6px; background: #111827; position: relative; }
+    .roadmap-card h4 { margin: 0 0 8px 0; font-size: 1.05rem; }
+    .roadmap-card p { font-size: 0.85rem; color: var(--text-muted); margin: 0; line-height: 1.5; }
 
     .btn { background: var(--accent); color: #fff; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; width: 100%; margin-top: 8px; font-weight: bold; }
     .btn:hover { opacity: 0.9; }
@@ -79,13 +84,14 @@
 
   <header>
     <h1>高校全15科目 学習・演習総合ポータル</h1>
-    <p>ダークモード ｜ 科別カラー ｜ 個別正誤管理 ｜ 難易度フィルター</p>
+    <p>ダークモード ｜ 科別カラー ｜ 3年間カリキュラム網羅 ｜ 個別正誤管理</p>
   </header>
 
   <!-- タブ切り替えメニュー -->
   <div class="tab-menu">
     <button class="tab-btn active" onclick="switchTab('quiz')">🎯 クイズを解く</button>
-    <button class="tab-btn" onclick="switchTab('history')">📊 成績・問題一覧（学習履歴）</button>
+    <button class="tab-btn" onclick="switchTab('roadmap')">📖 3年間学習ロードマップ</button>
+    <button class="tab-btn" onclick="switchTab('history')">📊 成績・問題一覧</button>
   </div>
 
   <!-- ① クイズを解く画面 -->
@@ -114,7 +120,18 @@
     </div>
   </div>
 
-  <!-- ② 成績・問題詳細一覧画面 -->
+  <!-- ② 3年間学習ロードマップ画面（新設） -->
+  <div id="view-roadmap" class="view-section">
+    <div class="card">
+      <h3>📖 高校全15科目 3年間学習単元ロードマップ</h3>
+      <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:15px;">
+        高校3年間で学習すべき全単元・重要テーマを網羅しています。各科目の出題範囲や全体像の把握にご活用ください。
+      </p>
+      <div class="roadmap-list" id="roadmap-container"></div>
+    </div>
+  </div>
+
+  <!-- ③ 成績・問題詳細一覧画面 -->
   <div id="view-history" class="view-section">
     <div id="history-main-view">
       <div class="card">
@@ -151,21 +168,21 @@
 
   <script>
     const subjects = [
-      { code: "eng_read", name: "英語リーディング", color: "#3b82f6" },
-      { code: "eng_listen", name: "英語リスニング", color: "#60a5fa" },
-      { code: "math1", name: "数学I", color: "#10b981" },
-      { code: "math_a", name: "数学A", color: "#34d399" },
-      { code: "math2", name: "数学Ⅱ", color: "#059669" },
-      { code: "math_b", name: "数学B", color: "#047857" },
-      { code: "math_c", name: "数学C", color: "#6ee7b7" },
-      { code: "kokugo_gen", name: "現代文", color: "#f59e0b" },
-      { code: "kokugo_ko", name: "古文", color: "#fbbf24" },
-      { code: "kokugo_kan", name: "漢文", color: "#d97706" },
-      { code: "chem_base", name: "化学基礎", color: "#8b5cf6" },
-      { code: "earth_base", name: "地学基礎", color: "#a78bfa" },
-      { code: "geo_tankyu", name: "地理総合探究", color: "#ec4899" },
-      { code: "seikei", name: "公共政治経済", color: "#f43f5e" },
-      { code: "info1", name: "情報I", color: "#06b6d4" }
+      { code: "eng_read", name: "英語リーディング", color: "#3b82f6", scope: "高度な長文読解、段落の要約、論理展開の把握、速読力、抽象的テーマ（哲学・環境・科学等）の英文、文法・構文の総合応用" },
+      { code: "eng_listen", name: "英語リスニング", color: "#60a5fa", scope: "日常会話・学校生活のやり取り、アナウンス・講義の聞き取り、グラフや表を伴う音声情報処理、ディスカッションの意図把握" },
+      { code: "math1", name: "数学I", color: "#10b981", scope: "数と式（展開・因数分解・実数・不等式）、二次関数（グラフ・最大最小・方程式と不等式）、図形と計量（三角比・正弦定理・余弦定理）、データの分析" },
+      { code: "math_a", name: "数学A", color: "#34d399", scope: "場合の数と確率（順列・組み合わせ・条件付き確率）、図形の性質（三角形・円の性質、幾何学的証明）、整数論（ユークリッドの互除法・不定方程式・合同式）" },
+      { code: "math2", name: "数学Ⅱ", color: "#059669", scope: "式と証明（高次方程式・二項定理・証明）、複素数と方程式、図形と方程式（直線・円・軌跡・領域）、三角関数、指数関数・対数関数、微分・積分の基礎" },
+      { code: "math_b", name: "数学B", color: "#047857", scope: "数列（等差・等比・様々な数列・漸化式・数学的帰納法）、統計的な推測（確率変数・確率分布・母集団と標本）" },
+      { code: "math_c", name: "数学C", color: "#6ee7b7", scope: "ベクトル（平面・空間のベクトル・内積・位置ベクトル）、平面上の曲線（二次曲線：放物線・楕円・双曲線、媒介変数表示、極座標）、複素数平面" },
+      { code: "kokugo_gen", name: "現代文", color: "#f59e0b", scope: "論理的思考力を要する評論（科学・文化・社会・哲学）、心情や人間関係を描いた小説、随筆、漢字・語彙・文学史の知識" },
+      { code: "kokugo_ko", name: "古文", color: "#fbbf24", scope: "古典文法（活用・助動詞・敬語・識別）、古文単語、重要作品の読解（平安〜江戸期の物語・日記・随筆・紀行文）、和歌の修辞法" },
+      { code: "kokugo_kan", name: "漢文", color: "#d97706", scope: "漢字の読み方・意味、返り点・書き下し文のルール、重要句形（使役・受身・反語・詠嘆・仮定・否定）、漢詩の形式、中国の思想家・歴史" },
+      { code: "chem_base", name: "化学基礎", color: "#8b5cf6", scope: "物質の構成（原子・分子・イオン・化学結合）、物質量（モル・化学反応式・濃度）、酸と塩基（中和滴定）、酸化還元反応" },
+      { code: "earth_base", name: "地学基礎", color: "#a78bfa", scope: "地球の構造と活動（プレートテクトニクス・地震・火山）、大気と海洋の動き（気象・海流・地球温暖化）、宇宙の構造（太陽系・恒星・銀河系）" },
+      { code: "geo_tankyu", name: "地理総合探究", color: "#ec4899", scope: "地図・GIS（地理情報システム）の活用、身近な地域調査、自然環境と防災、資源・エネルギーと産業、人口・都市・村落問題、グローバル化" },
+      { code: "seikei", name: "公共政治経済", color: "#f43f5e", scope: "民主主義の基本原理と日本国憲法、現代の政治機構・政党・選挙、国際社会の動向、経済体制と市場経済、金融・財政・社会保障、労働問題" },
+      { code: "info1", name: "情報I", color: "#06b6d4", scope: "情報社会とデザイン、コミュニケーションと情報セキュリティ、コンピューターの仕組みとプログラミング（Python等）、データ分析とモデル化" }
     ];
 
     let currentDetailCode = "";
@@ -178,17 +195,27 @@
       if (tabName === 'quiz') {
         document.querySelector('.tab-menu button:nth-child(1)').classList.add('active');
         document.getElementById('view-quiz').classList.add('active');
-      } else if (tabName === 'history') {
+      } else if (tabName === 'roadmap') {
         document.querySelector('.tab-menu button:nth-child(2)').classList.add('active');
+        document.getElementById('view-roadmap').classList.add('active');
+      } else if (tabName === 'history') {
+        document.querySelector('.tab-menu button:nth-child(3)').classList.add('active');
         document.getElementById('view-history').classList.add('active');
         loadHistoryStats();
       }
     }
 
     function initPortal() {
+      // クイズ選択画面の構築
       const quizContainer = document.getElementById('quiz-subject-list');
       quizContainer.innerHTML = '';
+
+      // ロードマップ画面の構築
+      const roadmapContainer = document.getElementById('roadmap-container');
+      roadmapContainer.innerHTML = '';
+
       subjects.forEach(sub => {
+        // クイズカード
         let diffOptions = '<option value="all">すべての難易度</option>';
         for(let i=1; i<=20; i++) { diffOptions += `<option value="${i}">レベル ${i}</option>`; }
 
@@ -202,6 +229,16 @@
           <button class="btn" style="background: ${sub.color};" onclick="event.stopPropagation(); startQuiz('${sub.code}')">🎯 クイズを始める</button>
         `;
         quizContainer.appendChild(card);
+
+        // ロードマップカード
+        const rmCard = document.createElement('div');
+        rmCard.className = 'roadmap-card';
+        rmCard.style.borderLeft = `4px solid ${sub.color}`;
+        rmCard.innerHTML = `
+          <h4 style="color: ${sub.color};">${sub.name}</h4>
+          <p>${sub.scope}</p>
+        `;
+        roadmapContainer.appendChild(rmCard);
       });
 
       const diffFilter = document.getElementById('detail-diff-filter');
