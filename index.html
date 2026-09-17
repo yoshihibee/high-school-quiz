@@ -50,18 +50,25 @@
     #quiz-play-area, #vocab-play-area { display: none; }
     .opt-btn { display: block; width: 100%; text-align: left; padding: 12px; margin: 8px 0; border: 1px solid var(--border); background: #111827; color: #fff; border-radius: 4px; cursor: pointer; }
     .opt-btn:hover { background: #334155; }
+
+    /* 単語一覧テーブル用スタイル */
+    .vocab-table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #111827; border-radius: 6px; overflow: hidden; }
+    .vocab-table th, .vocab-table td { padding: 10px 15px; border-bottom: 1px solid var(--border); text-align: left; font-size: 0.95rem; }
+    .vocab-table th { background: #1e293b; color: var(--muted); font-weight: bold; }
+    .vocab-table tr:hover { background: rgba(255,255,255,0.02); }
   </style>
 </head>
 <body>
 
   <header>
     <h1>高校全15科目 学習・演習総合ポータル</h1>
-    <p>ダークモード ｜ 50段階ロードマップ ｜ 単語記述式ニュアンス判定モード ｜ 個別正誤管理</p>
+    <p>ダークモード ｜ 50段階ロードマップ ｜ 単語記述式ニュアンス判定モード ｜ レベル別単語一覧</p>
   </header>
 
   <div class="tab-menu">
     <button class="tab-btn active" onclick="switchTab('quiz')">🎯 クイズ</button>
     <button class="tab-btn" onclick="switchTab('vocab')">📝 単語記述トレーニング</button>
+    <button class="tab-btn" onclick="switchTab('dict')">📚 単語一覧・辞書</button>
     <button class="tab-btn" onclick="switchTab('roadmap')">📖 ロードマップ</button>
     <button class="tab-btn" onclick="switchTab('history')">📊 成績一覧</button>
   </div>
@@ -148,7 +155,33 @@
     </div>
   </div>
 
-  <!-- ③ ロードマップ画面 -->
+  <!-- ③ 単語一覧・辞書画面 -->
+  <div id="view-dict" class="view-section">
+    <div class="card">
+      <h3>📚 単語・意味 一覧（レベル別辞書）</h3>
+      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">科目とレベル（ステージ）を選択して、単語と意味の一覧を確認できます。</p>
+      
+      <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 200px;">
+          <label>📚 科目選択:</label>
+          <select id="dict-type-select" onchange="renderDictTable()">
+            <option value="eng">🔤 英単語（重複除外済）</option>
+            <option value="kobun">📜 古文単語315</option>
+          </select>
+        </div>
+        <div style="flex: 1; min-width: 200px;">
+          <label>🔍 レベル（ステージ）選択:</label>
+          <select id="dict-level-select" onchange="renderDictTable()">
+            <option value="all">すべてのレベル（全件表示）</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="dict-container"></div>
+    </div>
+  </div>
+
+  <!-- ④ ロードマップ画面 -->
   <div id="view-roadmap" class="view-section">
     <div class="card">
       <h3>📖 高校全15科目 50段階学習ステップロードマップ</h3>
@@ -157,7 +190,7 @@
     </div>
   </div>
 
-  <!-- ④ 成績一覧画面 -->
+  <!-- ⑤ 成績一覧画面 -->
   <div id="view-history" class="view-section">
     <div id="history-main-view">
       <div class="card"><h3>📊 総合学習サマリー</h3><div id="overall-summary-box"></div></div>
@@ -204,24 +237,18 @@
       {"word": "build", "meaning": "建てる"}, {"word": "close", "meaning": "閉じる"}, {"word": "stay", "meaning": "滞在する"}, {"word": "move", "meaning": "動かす"}, {"word": "plan", "meaning": "計画する"},
       {"word": "begin", "meaning": "始める"}, {"word": "start", "meaning": "始める"}, {"word": "stop", "meaning": "止まる，止める"}, {"word": "finish", "meaning": "終える"}, {"word": "end", "meaning": "終わる"},
       {"word": "open", "meaning": "開く"}, {"word": "turn", "meaning": "曲がる，回る"}, {"word": "walk", "meaning": "歩く"}, {"word": "run", "meaning": "走る"},
-      // サンプル拡張用：重複スペルが含まれないようにユニークなものを生成
       {"word": "accept", "meaning": "受け入れる"}, {"word": "achieve", "meaning": "達成する"}, {"word": "add", "meaning": "加える"}, {"word": "admit", "meaning": "認める"}, {"word": "affect", "meaning": "影響を与える"},
       {"word": "allow", "meaning": "許す"}, {"word": "answer", "meaning": "答える"}, {"word": "appear", "meaning": "現れる"}, {"word": "apply", "meaning": "申し込む、当てはまる"}, {"word": "arrive", "meaning": "到着する"}
     ];
 
-    // 同一スペル（大文字小文字を区別せず完全一致）のものを除外して一意にする処理
     const uniqueEngMap = new Map();
     rawEngList.forEach(item => {
       const key = item.word.trim().toLowerCase();
-      if (!uniqueEngMap.has(key)) {
-        uniqueEngMap.set(key, item);
-      }
+      if (!uniqueEngMap.has(key)) uniqueEngMap.set(key, item);
     });
 
     const engFullList = [];
     let baseUniqueArray = Array.from(uniqueEngMap.values());
-    
-    // 大規模データとして展開しつつ、スペル重複が絶対に起きないようにインデックスを付与
     for(let i=0; i<3000; i++) {
       let base = baseUniqueArray[i % baseUniqueArray.length];
       let wordName = i < baseUniqueArray.length ? base.word : `${base.word}_${i+1}`;
@@ -253,9 +280,7 @@
     const uniqueKobunMap = new Map();
     rawKobunList.forEach(item => {
       const key = item.word.trim();
-      if (!uniqueKobunMap.has(key)) {
-        uniqueKobunMap.set(key, item);
-      }
+      if (!uniqueKobunMap.has(key)) uniqueKobunMap.set(key, item);
     });
 
     const kobun315List = Array.from(uniqueKobunMap.values());
@@ -277,10 +302,11 @@
     function switchTab(name) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
-      const idx = name === 'quiz' ? 0 : name === 'vocab' ? 1 : name === 'roadmap' ? 2 : 3;
-      document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+      const tabMap = { quiz: 0, vocab: 1, dict: 2, roadmap: 3, history: 4 };
+      document.querySelectorAll('.tab-btn')[tabMap[name]].classList.add('active');
       document.getElementById(`view-${name}`).classList.add('active');
       if (name === 'history') loadHistory();
+      if (name === 'dict') initDictView();
     }
 
     function init() {
@@ -311,6 +337,39 @@
       let df = '<option value="all">すべての難易度</option>';
       for(let i=1; i<=20; i++) df += `<option value="${i}">レベル ${i}</option>`;
       document.getElementById('detail-diff-filter').innerHTML = df;
+    }
+
+    function initDictView() {
+      let levelOpts = '<option value="all">すべてのレベル（全件表示）</option>';
+      for(let i=1; i<=30; i++) levelOpts += `<option value="${i}">レベル ${i}</option>`;
+      document.getElementById('dict-level-select').innerHTML = levelOpts;
+      renderDictTable();
+    }
+
+    function renderDictTable() {
+      const type = document.getElementById('dict-type-select').value;
+      const level = document.getElementById('dict-level-select').value;
+      let list = vocabData[type];
+
+      if (level !== 'all') {
+        list = list.filter(item => String(item.difficulty) === level);
+      }
+
+      const container = document.getElementById('dict-container');
+      if (!list.length) {
+        container.innerHTML = '<p style="color:var(--muted); margin-top:10px;">該当する単語がありません。</p>';
+        return;
+      }
+
+      let html = `<p style="color:var(--muted); font-size:0.85rem; margin-bottom:10px;">表示件数: <strong>${list.length}件</strong></p>`;
+      html += `<table class="vocab-table"><thead><tr><th style="width:25%;">単語</th><th style="width:15%;">レベル</th><th>意味</th></tr></thead><tbody>`;
+      
+      list.forEach(item => {
+        html += `<tr><td><strong style="color:var(--accent);">${item.word}</strong></td><td><span class="badge badge-diff">レベル ${item.difficulty || 1}</span></td><td>${item.meaning}</td></tr>`;
+      });
+      
+      html += `</tbody></table>`;
+      container.innerHTML = html;
     }
 
     function toggleRm(i) {
@@ -365,7 +424,6 @@
       document.getElementById('vocab-user-input').focus();
     }
 
-    // ニュアンス自動判定ロジック
     function checkNuance(userAns, correctAns) {
       const cleanUser = userAns.trim().toLowerCase();
       const cleanCorrect = correctAns.trim().toLowerCase();
